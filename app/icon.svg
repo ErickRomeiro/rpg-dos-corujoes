@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0b0f14" />
+  <!-- tufos de orelha -->
+  <path d="M19 14 L26 27 L13 27 Z" fill="#f0b429" />
+  <path d="M45 14 L51 27 L38 27 Z" fill="#f0b429" />
+  <!-- cabeça/corpo -->
+  <circle cx="32" cy="35" r="21" fill="#f0b429" />
+  <!-- olhos -->
+  <circle cx="23" cy="32" r="8.5" fill="#0b0f14" />
+  <circle cx="41" cy="32" r="8.5" fill="#0b0f14" />
+  <circle cx="23" cy="32" r="3.4" fill="#f0b429" />
+  <circle cx="41" cy="32" r="3.4" fill="#f0b429" />
+  <!-- bico -->
+  <path d="M32 37 L27 43 L37 43 Z" fill="#0b0f14" />
+</svg>

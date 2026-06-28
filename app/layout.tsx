@@ -16,9 +16,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Título fixo da aba em todas as páginas (o template sem %s ignora os
+  // títulos definidos por página).
   title: {
     default: "RPG dos Corujões",
-    template: "%s · RPG dos Corujões",
+    template: "RPG dos Corujões",
   },
   description:
     "Plataforma de ferramentas para RPGs de mesa: fichas, compêndios e utilitários para suas mesas.",

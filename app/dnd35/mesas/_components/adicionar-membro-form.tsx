@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { adicionarMembro, type EstadoForm } from "@/app/dnd35/mesas/actions";
 
@@ -238,10 +239,13 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
       </div>
 
       {semFicha && (
-        <p className="text-sm text-amber-400">
-          Esse jogador ainda não tem ficha de D&amp;D 3.5. Peça para ele criar
-          uma em “Fichas”, ou adicione como mestre.
-        </p>
+        <Link
+          href="/dnd35/fichas"
+          className="block rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-300 transition-colors hover:bg-amber-400/20"
+        >
+          Esse jogador ainda não tem ficha de D&amp;D 3.5. Clique aqui para criar
+          uma ficha → <span className="text-muted">(ou adicione como mestre)</span>
+        </Link>
       )}
       {estado?.erro && <p className="text-sm text-red-400">{estado.erro}</p>}
       {estado?.ok && <p className="text-sm text-green-400">Membro adicionado!</p>}
