@@ -1,0 +1,67 @@
+// Schema do Prisma (PostgreSQL na Neon).
+// Os modelos abaixo são o formato padrão exigido pelo Auth.js
+// (adaptador Prisma): User, Account, Session e VerificationToken.
+//
+// Modelos próprios do app (campanhas, membros, fichas, etc.) entram aqui
+// conforme cada feature for construída — ver memória "authorization-model".
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Papel GLOBAL do usuário no site:
+//   OWNER → dono/administrador, acesso total a tudo (você)
+//   USER  → usuário comum (padrão); seu papel de mestre/jogador é por campanha
+enum UserRole {
+  OWNER
+  USER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
