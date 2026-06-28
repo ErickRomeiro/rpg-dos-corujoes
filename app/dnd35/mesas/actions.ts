@@ -42,24 +42,18 @@ export async function adicionarMembro(
     return { erro: "Você não tem permissão para gerenciar esta mesa." };
   }
 
-  const email = String(formData.get("email") ?? "")
-    .trim()
-    .toLowerCase();
+  const userId = String(formData.get("userId") ?? "");
   const papel =
     String(formData.get("papel")) === "MESTRE"
       ? PapelMesa.MESTRE
       : PapelMesa.JOGADOR;
-  if (!email) return { erro: "Informe o e-mail." };
+  if (!userId) return { erro: "Selecione um jogador pela busca." };
 
-  const alvo = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
+  const alvo = await prisma.user.findUnique({
+    where: { id: userId },
     select: { id: true },
   });
-  if (!alvo) {
-    return {
-      erro: "Nenhum usuário com esse e-mail. A pessoa precisa entrar no site (login) ao menos uma vez antes de ser adicionada.",
-    };
-  }
+  if (!alvo) return { erro: "Usuário não encontrado." };
 
   const jaMembro = await prisma.membroMesa.findUnique({
     where: { mesaId_userId: { mesaId, userId: alvo.id } },
