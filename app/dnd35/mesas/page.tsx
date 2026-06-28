@@ -23,11 +23,18 @@ export default async function MesasPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  // Mesas onde sou mestre vêm primeiro (ordenação estável preserva a data).
+  const mesasOrdenadas = [...mesas].sort((a, b) => {
+    const am = a.membros[0]?.papel === "MESTRE" ? 0 : 1;
+    const bm = b.membros[0]?.papel === "MESTRE" ? 0 : 1;
+    return am - bm;
+  });
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6">
       <header className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">🗺️ Mesas</h1>
+          <h1 className="text-3xl font-bold tracking-tight">🗺️ Minhas mesas</h1>
           <p className="mt-2 text-muted">
             {dono
               ? "Todas as mesas de D&D 3.5."
@@ -44,7 +51,7 @@ export default async function MesasPage() {
         )}
       </header>
 
-      {mesas.length === 0 ? (
+      {mesasOrdenadas.length === 0 ? (
         <div className="rounded-xl border border-border bg-surface p-8 text-center text-muted">
           {dono
             ? "Nenhuma mesa ainda. Crie a primeira com “+ Nova mesa”."
@@ -52,10 +59,11 @@ export default async function MesasPage() {
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2">
-          {mesas.map((mesa) => {
+          {mesasOrdenadas.map((mesa) => {
             const meuPapel = mesa.membros[0]?.papel;
+            const souMestre = meuPapel === "MESTRE";
             const rotulo = meuPapel
-              ? meuPapel === "MESTRE"
+              ? souMestre
                 ? "Mestre"
                 : "Jogador"
               : dono
@@ -65,14 +73,29 @@ export default async function MesasPage() {
               <li key={mesa.id}>
                 <Link
                   href={`/dnd35/mesas/${mesa.id}`}
-                  className="flex h-full flex-col rounded-xl border border-border bg-surface p-6 transition-colors hover:border-accent/50 hover:bg-surface-2"
+                  className={`flex h-full flex-col rounded-xl border p-6 transition-colors ${
+                    souMestre
+                      ? "border-accent/60 bg-accent/[0.06] ring-1 ring-accent/20 hover:bg-accent/[0.1]"
+                      : "border-border bg-surface hover:border-accent/50 hover:bg-surface-2"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="text-lg font-semibold tracking-tight">
+                      {souMestre && (
+                        <span aria-hidden className="mr-1 text-accent">
+                          ★
+                        </span>
+                      )}
                       {mesa.nome}
                     </h2>
                     {rotulo && (
-                      <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted">
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          souMestre
+                            ? "bg-accent/15 text-accent"
+                            : "border border-border text-muted"
+                        }`}
+                      >
                         {rotulo}
                       </span>
                     )}
@@ -92,6 +115,11 @@ export default async function MesasPage() {
           })}
         </ul>
       )}
+
+      <p className="mt-16 text-center text-xs text-muted">
+        Dungeons &amp; Dragons e D&amp;D são marcas registradas da Wizards of the
+        Coast. Este é um projeto de fãs, sem afiliação ou endosso.
+      </p>
     </div>
   );
 }
