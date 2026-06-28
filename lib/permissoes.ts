@@ -43,3 +43,25 @@ export async function podeGerenciarMesa(
   });
   return membro?.papel === "MESTRE";
 }
+
+/**
+ * Pode editar a ficha: o dono do site, o dono da ficha (jogador), OU um mestre
+ * de alguma mesa em que esta ficha está sendo usada.
+ */
+export async function podeEditarFicha(
+  user: UsuarioSessao | null,
+  ficha: { userId: string },
+  fichaId: string,
+): Promise<boolean> {
+  if (!user) return false;
+  if (user.role === "OWNER") return true;
+  if (ficha.userId === user.id) return true;
+  const vinculo = await prisma.membroMesa.findFirst({
+    where: {
+      fichaId,
+      mesa: { membros: { some: { userId: user.id, papel: "MESTRE" } } },
+    },
+    select: { id: true },
+  });
+  return Boolean(vinculo);
+}

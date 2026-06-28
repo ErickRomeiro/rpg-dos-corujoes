@@ -34,6 +34,7 @@ model User {
   sessions      Session[]
   mesasCriadas  Mesa[]       @relation("MesasCriadas")
   membrosMesa   MembroMesa[]
+  fichas        Ficha[]
 }
 
 model Account {
@@ -90,13 +91,32 @@ model Mesa {
   @@index([sistema])
 }
 
+// Ficha de personagem — pertence ao jogador (independente de mesa).
+// Os valores preenchidos ficam em `dados` (JSON), estruturados aos poucos.
+model Ficha {
+  id        String       @id @default(cuid())
+  userId    String
+  sistema   String
+  nome      String
+  dados     Json
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membros   MembroMesa[]
+
+  @@index([userId])
+  @@index([sistema])
+}
+
 model MembroMesa {
   id        String    @id @default(cuid())
   mesaId    String
   userId    String
   papel     PapelMesa @default(JOGADOR)
+  fichaId   String?
   mesa      Mesa      @relation(fields: [mesaId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ficha     Ficha?    @relation(fields: [fichaId], references: [id], onDelete: SetNull)
   createdAt DateTime  @default(now())
 
   @@unique([mesaId, userId])
