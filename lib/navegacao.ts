@@ -9,6 +9,12 @@ export type SecaoNav = {
 
 export const secoesDnd35: SecaoNav[] = [
   {
+    href: "/dnd35/mesas",
+    rotulo: "Mesas",
+    descricao: "Crie e gerencie suas mesas, com mestres e jogadores.",
+    icone: "🗺️",
+  },
+  {
     href: "/dnd35/fichas",
     rotulo: "Fichas",
     descricao: "Crie e gerencie suas fichas de personagem com cálculos automáticos.",

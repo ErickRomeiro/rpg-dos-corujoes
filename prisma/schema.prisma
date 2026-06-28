@@ -32,6 +32,8 @@ model User {
   role          UserRole  @default(USER)
   accounts      Account[]
   sessions      Session[]
+  mesasCriadas  Mesa[]       @relation("MesasCriadas")
+  membrosMesa   MembroMesa[]
 }
 
 model Account {
@@ -64,4 +66,39 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+// ----- Mesas (campanhas) -----
+// Uma mesa pertence a um sistema de RPG (campo `sistema`, ex.: "dnd35").
+// Cada membro tem um papel naquela mesa (mestre ou jogador).
+
+enum PapelMesa {
+  MESTRE
+  JOGADOR
+}
+
+model Mesa {
+  id          String       @id @default(cuid())
+  nome        String
+  sistema     String
+  descricao   String?
+  criadoPorId String
+  criadoPor   User         @relation("MesasCriadas", fields: [criadoPorId], references: [id])
+  membros     MembroMesa[]
+  createdAt   DateTime     @default(now())
+
+  @@index([sistema])
+}
+
+model MembroMesa {
+  id        String    @id @default(cuid())
+  mesaId    String
+  userId    String
+  papel     PapelMesa @default(JOGADOR)
+  mesa      Mesa      @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@unique([mesaId, userId])
+  @@index([userId])
 }
