@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s · RPG dos Corujões",
   },
   description:
-    "Ferramentas para Dungeons & Dragons 3.5: fichas de personagem, compêndio de regras e utilitários de mesa.",
+    "Plataforma de ferramentas para RPGs de mesa: fichas, compêndios e utilitários para suas mesas.",
 };
 
 export default function RootLayout({

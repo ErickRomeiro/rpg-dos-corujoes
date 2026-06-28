@@ -69,6 +69,11 @@ export default function Dnd35Hub() {
           Ver biblioteca completa →
         </Link>
       </section>
+
+      <p className="mb-12 text-center text-xs text-muted">
+        Dungeons &amp; Dragons e D&amp;D são marcas registradas da Wizards of the
+        Coast. Este é um projeto de fãs, sem afiliação ou endosso.
+      </p>
     </div>
   );
 }
