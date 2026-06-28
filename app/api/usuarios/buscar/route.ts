@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
   if (!(await podeGerenciarMesa(user, mesaId))) {
     return NextResponse.json({ erro: "sem permissão" }, { status: 403 });
   }
-  if (q.length < 2) return NextResponse.json([]);
 
   const membros = await prisma.membroMesa.findMany({
     where: { mesaId },
@@ -28,13 +27,18 @@ export async function GET(req: NextRequest) {
   const usuarios = await prisma.user.findMany({
     where: {
       ...(idsExcluir.length ? { id: { notIn: idsExcluir } } : {}),
-      OR: [
-        { name: { contains: q, mode: "insensitive" } },
-        { email: { contains: q, mode: "insensitive" } },
-      ],
+      // Sem termo de busca, lista todos os adicionáveis (ao focar o campo).
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     select: { id: true, name: true, email: true, image: true },
-    take: 8,
+    take: 50,
     orderBy: { name: "asc" },
   });
 

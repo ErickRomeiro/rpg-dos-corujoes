@@ -61,8 +61,24 @@ export async function adicionarMembro(
   });
   if (jaMembro) return { erro: "Esse usuário já é membro da mesa." };
 
+  // Regra: jogador precisa de ficha; mestre não.
+  let fichaId: string | null = null;
+  if (papel === PapelMesa.JOGADOR) {
+    fichaId = String(formData.get("fichaId") ?? "") || null;
+    if (!fichaId) {
+      return { erro: "Selecione a ficha do jogador (jogadores precisam de ficha)." };
+    }
+    const ficha = await prisma.ficha.findUnique({
+      where: { id: fichaId },
+      select: { userId: true, sistema: true },
+    });
+    if (!ficha || ficha.userId !== alvo.id || ficha.sistema !== SISTEMA) {
+      return { erro: "Ficha inválida para este jogador." };
+    }
+  }
+
   await prisma.membroMesa.create({
-    data: { mesaId, userId: alvo.id, papel },
+    data: { mesaId, userId: alvo.id, papel, fichaId },
   });
 
   revalidatePath(`${BASE}/${mesaId}`);

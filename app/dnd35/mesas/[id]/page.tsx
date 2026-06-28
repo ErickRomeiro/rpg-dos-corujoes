@@ -28,6 +28,7 @@ export default async function MesaDetalhePage({
       membros: {
         include: {
           user: { select: { id: true, name: true, email: true, image: true } },
+          ficha: { select: { id: true, nome: true } },
         },
         orderBy: [{ papel: "asc" }, { user: { name: "asc" } }],
       },
@@ -106,6 +107,14 @@ export default async function MesaDetalhePage({
                     <p className="truncate text-xs text-muted">
                       {m.user.email}
                     </p>
+                    {m.ficha && (
+                      <Link
+                        href={`/dnd35/fichas/${m.ficha.id}`}
+                        className="block truncate text-xs text-accent hover:underline"
+                      >
+                        🎭 {m.ficha.nome}
+                      </Link>
+                    )}
                   </div>
 
                   <span
