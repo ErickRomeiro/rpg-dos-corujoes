@@ -1,11 +1,11 @@
 // Parser mínimo de leitura de .xlsx para inspecionar a planilha de origem.
-// Uso: node scripts/inspect-xlsx.mjs "<sheetName>" [maxRows]
+// Uso: node scripts/inspect-xlsx.mjs <caminho-xlsx> "<sheetName>" [maxRows]
 import { readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const XLSX = "C:/Users/Usuário/Desktop/DnD/Ficha D&D.xlsx";
+const XLSX = process.argv[2] ?? "./ficha.xlsx";
 const sheetName = process.argv[2];
 const maxRows = Number(process.argv[3] ?? 15);
 
