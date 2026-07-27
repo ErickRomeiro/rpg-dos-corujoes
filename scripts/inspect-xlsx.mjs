@@ -6,8 +6,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const XLSX = process.argv[2] ?? "./ficha.xlsx";
-const sheetName = process.argv[2];
-const maxRows = Number(process.argv[3] ?? 15);
+const sheetName = process.argv[3];
+const maxRows = Number(process.argv[4] ?? 15);
 
 // Extrai uma entrada do zip via PowerShell (sem dependências externas).
 function readEntry(entry) {

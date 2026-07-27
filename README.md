@@ -13,7 +13,12 @@
 
 ## 📸 Preview
 
-*(GIF/screenshot do fluxo será adicionado em breve)*
+| Login | Seleção de sistema | Mesas |
+|---|---|---|
+| ![Tela de login](./docs/preview-login.png) | ![Seleção de sistema](./docs/preview-sistemas.png) | ![Minhas mesas](./docs/preview-mesas.png) |
+| Login com Google | Escolha de sistema de RPG | Gestão de mesas do usuário |
+
+Fluxo real: login com Google → escolha do sistema de RPG → gestão das mesas do usuário.
 
 ---
 
