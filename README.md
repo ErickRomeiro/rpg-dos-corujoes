@@ -29,8 +29,10 @@ Fluxo real: login com Google → escolha do sistema de RPG → gestão das mesas
 - 🎲 **Sistema de mesas (campanhas)** — criar, listar, gerenciar membros
 - 👥 **Papéis por mesa** — mestre e jogador atribuídos independentemente do papel global no site
 - 🔎 **Adicionar membros via busca por nome** (autocomplete), não precisa saber o e-mail
-- 📋 **Biblioteca de fichas de personagem** (MVP) para D&D 3.5
+- 📋 **Ficha de personagem completa** de D&D 3.5 — atributos, combate, resistências, as 35 perícias do SRD com total calculado automaticamente, armas, talentos, equipamento, dinheiro e magias
+- 🐉 **Painel do mestre** — visão consolidada das fichas da mesa: PV, CA, iniciativa, resistências e os totais das perícias que o mestre rola em segredo
 - 🔗 **Vinculação ficha ↔ mesa** — cada jogador entra na mesa com sua ficha
+- 🎯 **Rolador de dados** — expressões como `2d6+1d4+2`, detalhe de cada dado, destaque de 20/1 natural e histórico da sessão
 - 📚 **Compêndio integrado** — acesso direto aos livros oficiais do sistema
 - 🛡️ **Papel global OWNER/USER** — dono do site promovido automaticamente por variável de ambiente
 
@@ -39,11 +41,9 @@ Fluxo real: login com Google → escolha do sistema de RPG → gestão das mesas
 Projeto em fase ativa — funcionalidades chegam conforme o grupo usa e pede.
 
 **Próximo:**
-- [ ] Deploy público em produção
 - [ ] Dados estruturados de raças, classes e magias (não só links)
-- [ ] Rolagem de dados integrada
 - [ ] Compartilhamento de ficha via link público
-- [ ] Modo mestre — visão consolidada das fichas da mesa
+- [ ] Rastreador de iniciativa e combate no painel do mestre
 - [ ] Suporte a novos sistemas além de D&D 3.5
 
 ---
