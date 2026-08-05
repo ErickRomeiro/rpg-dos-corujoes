@@ -13,10 +13,6 @@ type UsuarioBusca = {
 type FichaItem = { id: string; nome: string };
 
 export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
-  const [estado, action, pendente] = useActionState<EstadoForm, FormData>(
-    adicionarMembro,
-    undefined,
-  );
   const [query, setQuery] = useState("");
   const [resultados, setResultados] = useState<UsuarioBusca[]>([]);
   const [selecionado, setSelecionado] = useState<UsuarioBusca | null>(null);
@@ -28,62 +24,100 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
   const [carregandoFichas, setCarregandoFichas] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // A limpeza pós-sucesso acontece aqui, no fluxo da própria action — não num
+  // efeito reagindo ao resultado.
+  const [estado, action, pendente] = useActionState<EstadoForm, FormData>(
+    async (anterior, formData) => {
+      const resultado = await adicionarMembro(anterior, formData);
+      if (resultado?.ok) {
+        formRef.current?.reset();
+        setQuery("");
+        setSelecionado(null);
+        setResultados([]);
+        setPapel("JOGADOR");
+        setFichas([]);
+        setFichaId("");
+      }
+      return resultado;
+    },
+    undefined,
+  );
+
   // Lista usuários: todos os adicionáveis ao focar; filtra ao digitar.
+  // Quem liga o "Buscando…" são os handlers abaixo, não este efeito.
   useEffect(() => {
     if (selecionado || !aberto) return;
-    setBuscando(true);
+    let cancelado = false;
     const t = setTimeout(async () => {
       try {
         const res = await fetch(
           `/api/usuarios/buscar?mesaId=${encodeURIComponent(mesaId)}&q=${encodeURIComponent(query.trim())}`,
         );
-        setResultados(res.ok ? await res.json() : []);
+        const lista = res.ok ? await res.json() : [];
+        if (!cancelado) setResultados(lista);
       } catch {
-        setResultados([]);
+        if (!cancelado) setResultados([]);
       } finally {
-        setBuscando(false);
+        if (!cancelado) setBuscando(false);
       }
     }, 200);
-    return () => clearTimeout(t);
+    return () => {
+      cancelado = true;
+      clearTimeout(t);
+    };
   }, [query, aberto, selecionado, mesaId]);
 
   // Carrega as fichas do jogador selecionado (quando papel = jogador).
   useEffect(() => {
-    if (!selecionado || papel !== "JOGADOR") {
-      setFichas([]);
-      setFichaId("");
-      return;
-    }
-    setCarregandoFichas(true);
+    if (!selecionado || papel !== "JOGADOR") return;
+    let cancelado = false;
     (async () => {
       try {
         const res = await fetch(
           `/api/usuarios/fichas?mesaId=${encodeURIComponent(mesaId)}&userId=${encodeURIComponent(selecionado.id)}`,
         );
         const lista: FichaItem[] = res.ok ? await res.json() : [];
+        if (cancelado) return;
         setFichas(lista);
         setFichaId(lista.length === 1 ? lista[0].id : "");
       } catch {
-        setFichas([]);
-        setFichaId("");
+        if (!cancelado) {
+          setFichas([]);
+          setFichaId("");
+        }
       } finally {
-        setCarregandoFichas(false);
+        if (!cancelado) setCarregandoFichas(false);
       }
     })();
+    return () => {
+      cancelado = true;
+    };
   }, [selecionado, papel, mesaId]);
 
-  // Limpa tudo após adicionar com sucesso.
-  useEffect(() => {
-    if (estado?.ok) {
-      formRef.current?.reset();
-      setQuery("");
-      setSelecionado(null);
-      setResultados([]);
-      setPapel("JOGADOR");
-      setFichas([]);
-      setFichaId("");
-    }
-  }, [estado]);
+  // Handlers: concentram as trocas de estado que antes viviam nos efeitos.
+  function escolherJogador(u: UsuarioBusca) {
+    setSelecionado(u);
+    setResultados([]);
+    setAberto(false);
+    setFichas([]);
+    setFichaId("");
+    setCarregandoFichas(papel === "JOGADOR");
+  }
+
+  function trocarJogador() {
+    setSelecionado(null);
+    setQuery("");
+    setAberto(true);
+    setBuscando(true);
+    setFichas([]);
+    setFichaId("");
+  }
+
+  function trocarPapel(novo: string) {
+    setPapel(novo);
+    setFichaId("");
+    setCarregandoFichas(novo === "JOGADOR" && !!selecionado);
+  }
 
   const semFicha =
     !!selecionado &&
@@ -113,11 +147,7 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
             </span>
             <button
               type="button"
-              onClick={() => {
-                setSelecionado(null);
-                setQuery("");
-                setAberto(true);
-              }}
+              onClick={trocarJogador}
               className="shrink-0 text-xs text-muted hover:text-foreground"
             >
               trocar
@@ -127,8 +157,14 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
           <>
             <input
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setAberto(true)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setBuscando(true);
+              }}
+              onFocus={() => {
+                setAberto(true);
+                setBuscando(true);
+              }}
               onBlur={() => setTimeout(() => setAberto(false), 150)}
               placeholder="Clique para ver todos ou digite o nome…"
               autoComplete="off"
@@ -149,11 +185,7 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        setSelecionado(u);
-                        setResultados([]);
-                        setAberto(false);
-                      }}
+                      onClick={() => escolherJogador(u)}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
                     >
                       {u.image ? (
@@ -191,7 +223,7 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
           <label className="block text-xs font-medium text-muted">Papel</label>
           <select
             value={papel}
-            onChange={(e) => setPapel(e.target.value)}
+            onChange={(e) => trocarPapel(e.target.value)}
             className="mt-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
           >
             <option value="JOGADOR">Jogador</option>
