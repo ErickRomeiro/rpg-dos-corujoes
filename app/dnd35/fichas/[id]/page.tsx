@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { usuarioAtual, podeEditarFicha } from "@/lib/permissoes";
 import { lerDados } from "@/lib/ficha";
+import { catalogoDaFicha } from "@/lib/catalogo";
 import { FichaForm } from "@/app/dnd35/fichas/_components/ficha-form";
 import { excluirFicha } from "@/app/dnd35/fichas/actions";
 
@@ -20,7 +21,11 @@ export default async function FichaPage({
 
   const ficha = await prisma.ficha.findUnique({
     where: { id },
-    include: { user: { select: { id: true, name: true, email: true } } },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      // A mesa em que a ficha é usada define qual homebrew fica visível.
+      membros: { select: { mesaId: true }, take: 1 },
+    },
   });
   if (!ficha) notFound();
 
@@ -28,6 +33,7 @@ export default async function FichaPage({
   if (!pode) notFound();
 
   const dados = lerDados(ficha.dados);
+  const catalogo = await catalogoDaFicha(ficha.membros[0]?.mesaId ?? null);
   const ehMinha = ficha.userId === user.id;
   const podeExcluir = user.role === "OWNER" || ehMinha;
 
@@ -49,7 +55,12 @@ export default async function FichaPage({
         )}
       </header>
 
-      <FichaForm id={ficha.id} nome={ficha.nome} dados={dados} />
+      <FichaForm
+        id={ficha.id}
+        nome={ficha.nome}
+        dados={dados}
+        catalogo={catalogo}
+      />
 
       {podeExcluir && (
         <section className="mt-12 border-t border-border pt-6">

@@ -10,6 +10,10 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    // Permite importar com a extensão .ts explícita. Os módulos de lib/ usam
+    // isso para serem executáveis direto pelo Node nos scripts de verificação,
+    // sem depender do resolvedor do Next.
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,

@@ -5,18 +5,26 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { usuarioAtual, podeEditarFicha } from "@/lib/permissoes";
-import { dadosVazios, type DadosFicha } from "@/lib/ficha";
+import { dadosVazios, lerDados, type DadosFicha } from "@/lib/ficha";
 
 const SISTEMA = "dnd35";
 const BASE = `/${SISTEMA}/fichas`;
 
 export type EstadoFicha = { erro?: string; ok?: boolean } | undefined;
 
-function numForm(formData: FormData, name: string): number | null {
-  const v = String(formData.get(name) ?? "").trim();
-  if (v === "") return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
+/**
+ * A ficha inteira chega como JSON num input escondido. Devolvemos o valor cru —
+ * quem normaliza é `lerDados`, então JSON malformado ou adulterado vira uma
+ * ficha vazia em vez de sujeira no banco.
+ */
+function jsonForm(formData: FormData, name: string): unknown {
+  const v = String(formData.get(name) ?? "");
+  if (!v) return undefined;
+  try {
+    return JSON.parse(v);
+  } catch {
+    return undefined;
+  }
 }
 
 // Criar ficha — qualquer usuário logado cria as próprias.
@@ -63,27 +71,9 @@ export async function salvarFicha(
   const nome = String(formData.get("nome") ?? "").trim();
   if (!nome) return { erro: "O personagem precisa de um nome." };
 
-  const dados: DadosFicha = {
-    raca: String(formData.get("raca") ?? "").trim(),
-    classeNivel: String(formData.get("classeNivel") ?? "").trim(),
-    alinhamento: String(formData.get("alinhamento") ?? "").trim(),
-    atributos: {
-      forca: numForm(formData, "forca"),
-      destreza: numForm(formData, "destreza"),
-      constituicao: numForm(formData, "constituicao"),
-      inteligencia: numForm(formData, "inteligencia"),
-      sabedoria: numForm(formData, "sabedoria"),
-      carisma: numForm(formData, "carisma"),
-    },
-    pvAtual: numForm(formData, "pvAtual"),
-    pvMax: numForm(formData, "pvMax"),
-    ca: numForm(formData, "ca"),
-    iniciativa: numForm(formData, "iniciativa"),
-    deslocamento: String(formData.get("deslocamento") ?? "").trim(),
-    fortitude: numForm(formData, "fortitude"),
-    reflexos: numForm(formData, "reflexos"),
-    vontade: numForm(formData, "vontade"),
-  };
+  // `lerDados` é a mesma função que lê o JSON do banco, então o formato salvo
+  // é sempre o canônico — e nada que venha do cliente entra sem normalização.
+  const dados: DadosFicha = lerDados(jsonForm(formData, "dados"));
 
   await prisma.ficha.update({
     where: { id },

@@ -24,17 +24,18 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole  @default(USER)
-  accounts      Account[]
-  sessions      Session[]
-  mesasCriadas  Mesa[]       @relation("MesasCriadas")
-  membrosMesa   MembroMesa[]
-  fichas        Ficha[]
+  id             String         @id @default(cuid())
+  name           String?
+  email          String?        @unique
+  emailVerified  DateTime?
+  image          String?
+  role           UserRole       @default(USER)
+  accounts       Account[]
+  sessions       Session[]
+  mesasCriadas   Mesa[]         @relation("MesasCriadas")
+  membrosMesa    MembroMesa[]
+  fichas         Ficha[]
+  catalogoCriado ItemCatalogo[] @relation("CatalogoCriado")
 }
 
 model Account {
@@ -79,16 +80,65 @@ enum PapelMesa {
 }
 
 model Mesa {
-  id          String       @id @default(cuid())
+  id          String         @id @default(cuid())
   nome        String
   sistema     String
   descricao   String?
   criadoPorId String
-  criadoPor   User         @relation("MesasCriadas", fields: [criadoPorId], references: [id])
+  criadoPor   User           @relation("MesasCriadas", fields: [criadoPorId], references: [id])
   membros     MembroMesa[]
-  createdAt   DateTime     @default(now())
+  catalogo    ItemCatalogo[]
+  createdAt   DateTime       @default(now())
 
   @@index([sistema])
+}
+
+// ----- Catálogo de dados de jogo -----
+// Uma tabela só, polimórfica, no mesmo padrão da Ficha: o que varia por tipo
+// vive em `dados` (JSON) e é normalizado na leitura. Assim, acrescentar
+// monstros ou itens mágicos depois não exige migração.
+//
+// O conteúdo do SRD entra por seed (`npm run db:seed`), a partir dos arquivos
+// em lib/dnd35/ — que continuam sendo a fonte versionada da verdade.
+
+enum TipoCatalogo {
+  RACA
+  CLASSE
+  ARMA
+  ARMADURA
+  TALENTO
+  MAGIA
+  ITEM
+  DIVINDADE
+  IDIOMA
+}
+
+model ItemCatalogo {
+  id      String       @id @default(cuid())
+  sistema String
+  tipo    TipoCatalogo
+  nome    String
+  /// Campos próprios do tipo: ajustes de atributo, dano, CD, peso…
+  dados   Json
+  /// De onde veio: "SRD 3.5" para o oficial, "Homebrew" para o da mesa.
+  fonte   String       @default("SRD 3.5")
+
+  /// Null = conteúdo oficial, visível em todas as mesas.
+  /// Preenchido = homebrew, visível só naquela mesa.
+  mesaId String?
+  mesa   Mesa?   @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+
+  criadoPorId String?
+  criadoPor   User?   @relation("CatalogoCriado", fields: [criadoPorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Impede duplicar o mesmo nome no mesmo escopo (oficial ou de uma mesa).
+  @@unique([sistema, tipo, nome, mesaId])
+  // Busca por tipo dentro de um sistema é o acesso dominante.
+  @@index([sistema, tipo])
+  @@index([mesaId])
 }
 
 // Ficha de personagem — pertence ao jogador (independente de mesa).
