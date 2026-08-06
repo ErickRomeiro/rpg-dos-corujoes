@@ -1,0 +1,375 @@
+// Magias de D&D 3.5.
+//
+// Os nomes e os resumos em português vêm das listas do Capítulo 11 do Livro do
+// Jogador — inclusive onde a tradução é imprecisa, para o catálogo bater com o
+// livro que está em cima da mesa. A escola e o link do texto completo vêm da
+// planilha da mesa, que guarda a versão em inglês; `nomeOriginal` é o que
+// amarra as duas fontes e serve para procurar qualquer coisa fora daqui.
+//
+// A tabela é montada por lista, aos poucos. O que já entrou:
+//   Paladino 1–4, Patrulheiro 1–4, Feiticeiro e Mago 0–5.
+// Uma magia que serve a várias classes aparece uma única vez, com um nível por
+// classe em `niveis`: quando uma lista nova entra, a magia repetida só ganha
+// mais uma chave em vez de virar outra linha.
+//
+// O livro junta numa linha só as quatro variantes de proteção (Caos/Mal/Bem/
+// Ordem) e de círculo mágico; aqui elas ficam separadas, como no SRD.
+
+export type EscolaMagia =
+  | "Abjuração"
+  | "Adivinhação"
+  | "Conjuração"
+  | "Encantamento"
+  | "Evocação"
+  | "Ilusão"
+  | "Necromancia"
+  | "Transmutação"
+  | "Universal";
+
+export type Magia = {
+  id: string;
+  nome: string;
+  /** Nome em inglês, para cruzar com a planilha e com material de fora. */
+  nomeOriginal: string;
+  escola: EscolaMagia;
+  /** Nível por classe, na mesma chave usada em CLASSES. */
+  niveis: Record<string, number>;
+  /** Resumo de uma linha, como aparece na lista do livro. */
+  resumo: string;
+  /** Texto completo no d20srd. */
+  referencia?: string;
+};
+
+/** Monta o link do d20srd a partir do trecho final da URL. */
+const srd = (pagina: string) => `https://www.d20srd.org/srd/spells/${pagina}.htm`;
+
+// Todos os links foram abertos no d20srd e respondem 200 — não são inferência.
+//
+// Cuidado ao acrescentar magia de nome próprio: o SRD não usa o nome do mago
+// na URL, e a regra não é uma só. Na maioria ele simplesmente some ("Melf's
+// Acid Arrow" -> acidArrow, "Leomund's Trap" -> phantomTrap), mas as de
+// Mordenkainen viram "Mage's" (-> magesFaithfulHound, magesPrivateSanctum).
+// Não dá para adivinhar: confira em /indexes/spells.htm. Vale lembrar que o
+// site fica atrás de um desafio do Cloudflare e responde 403 para requisição
+// automatizada — a verificação precisa sair de um navegador de verdade.
+
+export const MAGIAS: Magia[] = [
+  { id: "abencoarAgua", nome: "Abençoar Água", nomeOriginal: "Bless Water", escola: "Transmutação", niveis: { paladino: 1 }, resumo: "Cria água benta", referencia: srd("blessWater") },
+  { id: "abencoarArma", nome: "Abençoar Arma", nomeOriginal: "Bless Weapon", escola: "Transmutação", niveis: { paladino: 1 }, resumo: "Uma arma ataca com precisão contra inimigos malignos", referencia: srd("blessWeapon") },
+  { id: "abrirFechar", nome: "Abrir/Fechar", nomeOriginal: "Open/Close", escola: "Transmutação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Abre/fecha objetos pequenos ou leves", referencia: srd("openClose") },
+  { id: "acalmarAnimais", nome: "Acalmar Animais", nomeOriginal: "Calm Animals", escola: "Encantamento", niveis: { patrulheiro: 1 }, resumo: "Acalma (2d4+nível) DV de animais", referencia: srd("calmAnimals") },
+  { id: "agilidadeDoGato", nome: "Agilidade do Gato", nomeOriginal: "Cat's Grace", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2, patrulheiro: 2 }, resumo: "O alvo recebe +4 Des durante 1 min/nível", referencia: srd("catsGrace") },
+  { id: "alarme", nome: "Alarme", nomeOriginal: "Alarm", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1, patrulheiro: 1 }, resumo: "Protege uma área durante 2 h/nível", referencia: srd("alarm") },
+  { id: "alterarSe", nome: "Alterar-se", nomeOriginal: "Alter Self", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Assume a forma de uma criatura similar", referencia: srd("alterSelf") },
+  { id: "ampliarAnimais", nome: "Ampliar Animais", nomeOriginal: "Animal Growth", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5, patrulheiro: 4 }, resumo: "Um animal/2 níveis dobra de tamanho", referencia: srd("animalGrowth") },
+  { id: "ampliarPlantas", nome: "Ampliar Plantas", nomeOriginal: "Plant Growth", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "Faz a vegetação crescer, melhora colheitas", referencia: srd("plantGrowth") },
+  { id: "ancoraDimensional", nome: "Âncora Dimensional", nomeOriginal: "Dimensional Anchor", escola: "Abjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Impede movimento extra-dimensional", referencia: srd("dimensionalAnchor") },
+  { id: "ancoraPlanarMenor", nome: "Âncora Planar Menor", nomeOriginal: "Planar Binding, Lesser", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Prende um ser extraplanar (6 DV ou menos) até cumprir uma tarefa", referencia: srd("planarBindingLesser") },
+  { id: "animarCordas", nome: "Animar Cordas", nomeOriginal: "Animate Rope", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Faz com que uma corda se mova a seu comando", referencia: srd("animateRope") },
+  { id: "apagar", nome: "Apagar", nomeOriginal: "Erase", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Faz um escrito comum ou mágico desaparecer", referencia: srd("erase") },
+  { id: "arcaSecretaDeLeomund", nome: "Arca Secreta de Leomund", nomeOriginal: "Leomund's Secret Chest", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Esconde um baú no Plano Etéreo; o conjurador pode pegá-lo quando desejar", referencia: srd("secretChest") },
+  { id: "areaEscorregadia", nome: "Área Escorregadia", nomeOriginal: "Grease", escola: "Conjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Torna 3 m quadrados ou um objeto escorregadios", referencia: srd("grease") },
+  { id: "armaMagica", nome: "Arma Mágica", nomeOriginal: "Magic Weapon", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1, paladino: 1 }, resumo: "Uma arma recebe +1 de bônus", referencia: srd("magicWeapon") },
+  { id: "armaMagicaMaior", nome: "Arma Mágica Maior", nomeOriginal: "Magic Weapon, Greater", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3, paladino: 3 }, resumo: "+1 a cada 4 níveis, máx. +5", referencia: srd("magicWeaponGreater") },
+  { id: "armadilha", nome: "Armadilha", nomeOriginal: "Snare", escola: "Transmutação", niveis: { patrulheiro: 2 }, resumo: "Cria uma armadilha de laço mágica", referencia: srd("snare") },
+  { id: "armadilhaDeFogo", nome: "Armadilha de Fogo", nomeOriginal: "Fire Trap", escola: "Abjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Objeto causa 1d4 de dano +1/nível quando aberto", referencia: srd("fireTrap") },
+  { id: "armadilhaDeLeomund", nome: "Armadilha de Leomund", nomeOriginal: "Leomund's Trap", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Cria uma armadilha ilusória num item", referencia: srd("phantomTrap") },
+  { id: "armaduraArcana", nome: "Armadura Arcana", nomeOriginal: "Mage Armor", escola: "Conjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Concede ao alvo +4 de bônus de armadura", referencia: srd("mageArmor") },
+  { id: "arrombar", nome: "Arrombar", nomeOriginal: "Knock", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Abre porta trancada ou selada por magia", referencia: srd("knock") },
+  { id: "assassinoFantasmagorico", nome: "Assassino Fantasmagórico", nomeOriginal: "Phantasmal Killer", escola: "Ilusão", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Ilusão temerária mata o alvo ou causa 3d6 de dano", referencia: srd("phantasmalKiller") },
+  { id: "astuciaDaRaposa", nome: "Astúcia da Raposa", nomeOriginal: "Fox's Cunning", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "O alvo recebe +4 Int durante 1 min/nível", referencia: srd("foxsCunning") },
+  { id: "ataqueCerteiro", nome: "Ataque Certeiro", nomeOriginal: "True Strike", escola: "Adivinhação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Concede +20 de bônus à sua próxima jogada de ataque", referencia: srd("trueStrike") },
+  { id: "aterrorizar", nome: "Aterrorizar", nomeOriginal: "Scare", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Criaturas com 6 DV ou menos ficam em pânico", referencia: srd("scare") },
+  { id: "aumentarPessoa", nome: "Aumentar Pessoa", nomeOriginal: "Enlarge Person", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Humanóide dobra de tamanho", referencia: srd("enlargePerson") },
+  { id: "aumentarPessoaEmMassa", nome: "Aumentar Pessoa em Massa", nomeOriginal: "Enlarge Person, Mass", escola: "Transmutação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Aumenta diversas criaturas", referencia: srd("enlargePersonMass") },
+  { id: "auraMagicaDeNystul", nome: "Aura Mágica de Nystul", nomeOriginal: "Magic Aura", escola: "Ilusão", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Concede uma aura mágica falsa ao objeto", referencia: srd("magicAura") },
+  { id: "auxilioDivino", nome: "Auxílio Divino", nomeOriginal: "Divine Favor", escola: "Evocação", niveis: { paladino: 1 }, resumo: "Você recebe +1 de bônus a cada 3 níveis para ataques e dano", referencia: srd("divineFavor") },
+  { id: "bencao", nome: "Bênção", nomeOriginal: "Bless", escola: "Encantamento", niveis: { paladino: 1 }, resumo: "Aliados recebem +1 para ataques e testes contra medo", referencia: srd("bless") },
+  { id: "bocaEncantada", nome: "Boca Encantada", nomeOriginal: "Magic Mouth", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Emite um recado quando ativada", referencia: srd("magicMouth") },
+  { id: "bolaDeFogo", nome: "Bola de Fogo", nomeOriginal: "Fireball", escola: "Evocação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "1d6 de dano por nível, 6 m de raio", referencia: srd("fireball") },
+  { id: "brilho", nome: "Brilho", nomeOriginal: "Flare", escola: "Evocação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Ofusca uma criatura (−1 nas jogadas de ataque)", referencia: srd("flare") },
+  { id: "caminharEmArvores", nome: "Caminhar em Árvores", nomeOriginal: "Tree Stride", escola: "Conjuração", niveis: { patrulheiro: 4 }, resumo: "Passe através de uma árvore para outra", referencia: srd("treeStride") },
+  { id: "caminharNaAgua", nome: "Caminhar na Água", nomeOriginal: "Water Walk", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "O alvo caminha sobre a água como se ela fosse sólida", referencia: srd("waterWalk") },
+  { id: "cancelarEncantamento", nome: "Cancelar Encantamento", nomeOriginal: "Break Enchantment", escola: "Abjuração", niveis: { feiticeiro: 5, mago: 5, paladino: 4 }, resumo: "Liberta os alvos de encantamentos, alterações, maldições e petrificação", referencia: srd("breakEnchantment") },
+  { id: "caoFielDeMordenkainen", nome: "Cão Fiel de Mordenkainen", nomeOriginal: "Mordenkainen's Faithful Hound", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Cachorro fantasma pode guardar e atacar", referencia: srd("magesFaithfulHound") },
+  { id: "causarMedo", nome: "Causar Medo", nomeOriginal: "Cause Fear", escola: "Necromancia", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Uma criatura (5 DV ou menos) foge durante 1d4 rodadas", referencia: srd("causeFear") },
+  { id: "cegueiraSurdez", nome: "Cegueira/Surdez", nomeOriginal: "Blindness/Deafness", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Torna o alvo cego ou surdo", referencia: srd("blindnessDeafness") },
+  { id: "cerrarPortas", nome: "Cerrar Portas", nomeOriginal: "Hold Portal", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Mantém uma porta fechada", referencia: srd("holdPortal") },
+  { id: "chamaContinua", nome: "Chama Contínua", nomeOriginal: "Continual Flame", escola: "Evocação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Cria fogo ilusório permanente", referencia: srd("continualFlame") },
+  { id: "circuloMagicoContraAOrdem", nome: "Círculo Mágico Contra a Ordem", nomeOriginal: "Magic Circle Against Law", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Como as magias de proteção, mas com 3 m de raio e 10 min/nível", referencia: srd("magicCircleAgainstLaw") },
+  { id: "circuloMagicoContraOBem", nome: "Círculo Mágico Contra o Bem", nomeOriginal: "Magic Circle Against Good", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Como as magias de proteção, mas com 3 m de raio e 10 min/nível", referencia: srd("magicCircleAgainstGood") },
+  { id: "circuloMagicoContraOCaos", nome: "Círculo Mágico Contra o Caos", nomeOriginal: "Magic Circle Against Chaos", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3, paladino: 3 }, resumo: "Como as magias de proteção, mas com 3 m de raio e 10 min/nível", referencia: srd("magicCircleAgainstChaos") },
+  { id: "circuloMagicoContraOMal", nome: "Círculo Mágico Contra o Mal", nomeOriginal: "Magic Circle Against Evil", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3, paladino: 3 }, resumo: "Como as magias de proteção, mas com 3 m de raio e 10 min/nível", referencia: srd("magicCircleAgainstEvil") },
+  { id: "clarividenciaClariaudiencia", nome: "Clarividência/Clariaudiência", nomeOriginal: "Clairaudience/Clairvoyance", escola: "Adivinhação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Ouve ou enxerga à distância durante 1 min/nível", referencia: srd("clairaudienceClairvoyance") },
+  { id: "comandarMortosVivos", nome: "Comandar Mortos-vivos", nomeOriginal: "Command Undead", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Morto-vivo obedece seus comandos", referencia: srd("commandUndead") },
+  { id: "comandarPlantas", nome: "Comandar Plantas", nomeOriginal: "Command Plants", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "Comande as ações de uma ou mais criaturas tipo planta", referencia: srd("commandPlants") },
+  { id: "compor", nome: "Compor", nomeOriginal: "Fabricate", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Transforma matéria prima em itens trabalhados", referencia: srd("fabricate") },
+  { id: "compreenderIdiomas", nome: "Compreender Idiomas", nomeOriginal: "Comprehend Languages", escola: "Adivinhação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Entenda todas as línguas faladas e escritas", referencia: srd("comprehendLanguages") },
+  { id: "comunhaoComANatureza", nome: "Comunhão Com a Natureza", nomeOriginal: "Commune With Nature", escola: "Adivinhação", niveis: { patrulheiro: 4 }, resumo: "Aprenda sobre o terreno, 1,5 km/nível", referencia: srd("communeWithNature") },
+  { id: "coneGlacial", nome: "Cone Glacial", nomeOriginal: "Cone of Cold", escola: "Evocação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "1d6 de dano de frio/nível", referencia: srd("coneOfCold") },
+  { id: "confundirDeteccao", nome: "Confundir Detecção", nomeOriginal: "Misdirection", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Engana adivinhações sobre um objeto ou criatura", referencia: srd("misdirection") },
+  { id: "confusao", nome: "Confusão", nomeOriginal: "Confusion", escola: "Encantamento", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Obriga o alvo a agir de modo estranho durante 1 rodada/nível", referencia: srd("confusion") },
+  { id: "conjuracaoDeSombras", nome: "Conjuração de Sombras", nomeOriginal: "Shadow Conjuration", escola: "Ilusão", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Imita conjurações de até 4º nível, mas apenas 20% reais", referencia: srd("shadowConjuration") },
+  { id: "consertar", nome: "Consertar", nomeOriginal: "Mending", escola: "Transmutação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Faz pequenos reparos em um objeto", referencia: srd("mending") },
+  { id: "constricao", nome: "Constrição", nomeOriginal: "Entangle", escola: "Transmutação", niveis: { patrulheiro: 1 }, resumo: "Plantas enredam todos em um círculo de 12 m de raio", referencia: srd("entangle") },
+  { id: "contatoExtraplanar", nome: "Contato Extraplanar", nomeOriginal: "Contact Other Plane", escola: "Adivinhação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Pergunte algo a uma entidade extraplanar", referencia: srd("contactOtherPlane") },
+  { id: "crescerEspinhos", nome: "Crescer Espinhos", nomeOriginal: "Spike Growth", escola: "Transmutação", niveis: { patrulheiro: 2 }, resumo: "As criaturas na área sofrem 1d4 de dano, podem ficar lentas", referencia: srd("spikeGrowth") },
+  { id: "criarAgua", nome: "Criar Água", nomeOriginal: "Create Water", escola: "Conjuração", niveis: { paladino: 1 }, resumo: "Cria 8 litros/nível de água pura", referencia: srd("createWater") },
+  { id: "criarItensEfemeros", nome: "Criar Itens Efêmeros", nomeOriginal: "Minor Creation", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Cria um objeto de pano ou madeira", referencia: srd("minorCreation") },
+  { id: "criarItensTemporarios", nome: "Criar Itens Temporários", nomeOriginal: "Major Creation", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Como criar itens efêmeros, mas também pedra e metal", referencia: srd("majorCreation") },
+  { id: "criarMortosVivosMenor", nome: "Criar Mortos-Vivos Menor", nomeOriginal: "Animate Dead", escola: "Necromancia", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Cria zumbis e esqueletos", referencia: srd("animateDead") },
+  { id: "criarPassagens", nome: "Criar Passagens", nomeOriginal: "Passwall", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Abre um buraco em madeira ou pedra", referencia: srd("passwall") },
+  { id: "curarFerimentosGraves", nome: "Curar Ferimentos Graves", nomeOriginal: "Cure Serious Wounds", escola: "Conjuração", niveis: { paladino: 4, patrulheiro: 4 }, resumo: "Cura 3d8 +1/nível de dano (máx. +15)", referencia: srd("cureSeriousWounds") },
+  { id: "curarFerimentosLeves", nome: "Curar Ferimentos Leves", nomeOriginal: "Cure Light Wounds", escola: "Conjuração", niveis: { paladino: 1, patrulheiro: 2 }, resumo: "Cura 1d8 +1/nível de dano (máx. +5)", referencia: srd("cureLightWounds") },
+  { id: "curarFerimentosModerados", nome: "Curar Ferimentos Moderados", nomeOriginal: "Cure Moderate Wounds", escola: "Conjuração", niveis: { paladino: 3, patrulheiro: 3 }, resumo: "Cura 2d8 +1/nível de dano (máx. +10)", referencia: srd("cureModerateWounds") },
+  { id: "curarMontaria", nome: "Curar Montaria", nomeOriginal: "Heal Mount", escola: "Conjuração", niveis: { paladino: 3 }, resumo: "Como cura completa em cavalo de guerra ou outra montaria", referencia: srd("healMount") },
+  { id: "descansoTranquilo", nome: "Descanso Tranquilo", nomeOriginal: "Gentle Repose", escola: "Necromancia", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Preserva um corpo", referencia: srd("gentleRepose") },
+  { id: "desesperoEsmagador", nome: "Desespero Esmagador", nomeOriginal: "Crushing Despair", escola: "Encantamento", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Vítimas sofrem −2 nas jogadas de ataque, dano, testes de resistência, perícia e de habilidade", referencia: srd("crushingDespair") },
+  { id: "deslocamento", nome: "Deslocamento", nomeOriginal: "Displacement", escola: "Ilusão", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Os ataques têm 50% de chance de fracassar", referencia: srd("displacement") },
+  { id: "despedacar", nome: "Despedaçar", nomeOriginal: "Shatter", escola: "Evocação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Vibrações sônicas causam dano a objetos ou criaturas cristalinas", referencia: srd("shatter") },
+  { id: "detectarAnimaisOuPlantas", nome: "Detectar Animais ou Plantas", nomeOriginal: "Detect Animals or Plants", escola: "Adivinhação", niveis: { patrulheiro: 1 }, resumo: "Detecta espécies de animais ou plantas", referencia: srd("detectAnimalsOrPlants") },
+  { id: "detectarArmadilhas", nome: "Detectar Armadilhas", nomeOriginal: "Detect Snares and Pits", escola: "Adivinhação", niveis: { patrulheiro: 1 }, resumo: "Revela armadilhas naturais ou primitivas", referencia: srd("detectSnaresAndPits") },
+  { id: "detectarMagia", nome: "Detectar Magia", nomeOriginal: "Detect Magic", escola: "Adivinhação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Detecta magias e itens mágicos a menos de 18 m", referencia: srd("detectMagic") },
+  { id: "detectarMortosVivos", nome: "Detectar Mortos-Vivos", nomeOriginal: "Detect Undead", escola: "Adivinhação", niveis: { feiticeiro: 1, mago: 1, paladino: 1 }, resumo: "Revela mortos-vivos que estejam a menos de 18 m", referencia: srd("detectUndead") },
+  { id: "detectarPensamentos", nome: "Detectar Pensamentos", nomeOriginal: "Detect Thoughts", escola: "Adivinhação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Permite captar pensamentos superficiais", referencia: srd("detectThoughts") },
+  { id: "detectarPortasSecretas", nome: "Detectar Portas Secretas", nomeOriginal: "Detect Secret Doors", escola: "Adivinhação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Revela portas secretas que estejam a menos de 18 m", referencia: srd("detectSecretDoors") },
+  { id: "detectarVenenos", nome: "Detectar Venenos", nomeOriginal: "Detect Poison", escola: "Adivinhação", niveis: { feiticeiro: 0, mago: 0, paladino: 1, patrulheiro: 1 }, resumo: "Detecta veneno em uma criatura ou objeto pequeno", referencia: srd("detectPoison") },
+  { id: "detectarVidencia", nome: "Detectar Vidência", nomeOriginal: "Detect Scrying", escola: "Adivinhação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Alerta o conjurador sobre espionagem mágica", referencia: srd("detectScrying") },
+  { id: "dificultarDeteccao", nome: "Dificultar Detecção", nomeOriginal: "Nondetection", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3, patrulheiro: 4 }, resumo: "Esconde o alvo de adivinhações e observação", referencia: srd("nondetection") },
+  { id: "discernirMentiras", nome: "Discernir Mentiras", nomeOriginal: "Discern Lies", escola: "Adivinhação", niveis: { paladino: 3 }, resumo: "Revela mentiras deliberadas", referencia: srd("discernLies") },
+  { id: "discoFlutuanteDeTenser", nome: "Disco Flutuante de Tenser", nomeOriginal: "Tenser's Floating Disk", escola: "Evocação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Disco horizontal de 1,5 m de diâmetro que suporta 50 kg/nível", referencia: srd("floatingDisk") },
+  { id: "dissimularTendencia", nome: "Dissimular Tendência", nomeOriginal: "Undetectable Alignment", escola: "Abjuração", niveis: { paladino: 2 }, resumo: "Esconde uma tendência durante 24 horas", referencia: srd("undetectableAlignment") },
+  { id: "dissiparMagia", nome: "Dissipar Magia", nomeOriginal: "Dispel Magic", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3, paladino: 3 }, resumo: "Cancela magias e efeitos mágicos", referencia: srd("dispelMagic") },
+  { id: "dissiparOCaos", nome: "Dissipar o Caos", nomeOriginal: "Dispel Chaos", escola: "Abjuração", niveis: { paladino: 4 }, resumo: "+4 de bônus contra ataques caóticos", referencia: srd("dispelChaos") },
+  { id: "dissiparOMal", nome: "Dissipar o Mal", nomeOriginal: "Dispel Evil", escola: "Abjuração", niveis: { paladino: 4 }, resumo: "+4 de bônus contra ataques malignos", referencia: srd("dispelEvil") },
+  { id: "dominarPessoa", nome: "Dominar Pessoa", nomeOriginal: "Dominate Person", escola: "Encantamento", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Controla humanóide por telepatia", referencia: srd("dominatePerson") },
+  { id: "drenarTemporario", nome: "Drenar Temporário", nomeOriginal: "Enervation", escola: "Necromancia", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Alvo perde 1d4 níveis", referencia: srd("enervation") },
+  { id: "encolherItem", nome: "Encolher Item", nomeOriginal: "Shrink Item", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Objeto encolhe para 1/16 de seu tamanho", referencia: srd("shrinkItem") },
+  { id: "enfeiticarAnimal", nome: "Enfeitiçar Animal", nomeOriginal: "Charm Animal", escola: "Encantamento", niveis: { patrulheiro: 1 }, resumo: "Torna um animal seu aliado", referencia: srd("charmAnimal") },
+  { id: "enfeiticarMonstro", nome: "Enfeitiçar Monstro", nomeOriginal: "Charm Monster", escola: "Encantamento", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Obriga um monstro a acreditar que é seu aliado", referencia: srd("charmMonster") },
+  { id: "enfeiticarPessoa", nome: "Enfeitiçar Pessoa", nomeOriginal: "Charm Person", escola: "Encantamento", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Torna uma pessoa amigável", referencia: srd("charmPerson") },
+  { id: "enfraquecerOIntelecto", nome: "Enfraquecer o Intelecto", nomeOriginal: "Feeblemind", escola: "Encantamento", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Inteligência e Carisma do alvo caem para 1", referencia: srd("feeblemind") },
+  { id: "enfraquecerPlantas", nome: "Enfraquecer Plantas", nomeOriginal: "Diminish Plants", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "Reduz o tamanho ou impede o crescimento de plantas normais", referencia: srd("diminishPlants") },
+  { id: "enviarMensagem", nome: "Enviar Mensagem", nomeOriginal: "Sending", escola: "Evocação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Entrega mensagem curta em qualquer lugar instantaneamente", referencia: srd("sending") },
+  { id: "escritaIlusoria", nome: "Escrita Ilusória", nomeOriginal: "Illusory Script", escola: "Ilusão", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Somente o leitor designado pode entendê-la", referencia: srd("illusoryScript") },
+  { id: "escudoArcano", nome: "Escudo Arcano", nomeOriginal: "Shield", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Disco invisível fornece +4 CA e bloqueia mísseis mágicos", referencia: srd("shield") },
+  { id: "escudoDoFogo", nome: "Escudo do Fogo", nomeOriginal: "Fire Shield", escola: "Evocação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Criaturas atacantes sofrem dano de fogo; protege de frio ou calor", referencia: srd("fireShield") },
+  { id: "escuridao", nome: "Escuridão", nomeOriginal: "Darkness", escola: "Evocação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Cria 6 m de raio de escuridão sobrenatural", referencia: srd("darkness") },
+  { id: "esferaDeInvisibilidade", nome: "Esfera de Invisibilidade", nomeOriginal: "Invisibility Sphere", escola: "Ilusão", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Torna todos dentro de uma área de 3 m invisíveis", referencia: srd("invisibilitySphere") },
+  { id: "esferaFlamejante", nome: "Esfera Flamejante", nomeOriginal: "Flaming Sphere", escola: "Evocação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Esfera de fogo móvel que causa 2d6 de dano, dura 1 rodada/nível", referencia: srd("flamingSphere") },
+  { id: "esferaResilienteDeOtiluke", nome: "Esfera Resiliente de Otiluke", nomeOriginal: "Otiluke's Resilient Sphere", escola: "Evocação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Globo de força protege (mas aprisiona) um alvo", referencia: srd("resilientSphere") },
+  { id: "espadaSagrada", nome: "Espada Sagrada", nomeOriginal: "Holy Sword", escola: "Evocação", niveis: { paladino: 4 }, resumo: "A arma se torna +5 e causa +2d6 de dano contra seres malignos", referencia: srd("holySword") },
+  { id: "esplendorDaAguia", nome: "Esplendor da Águia", nomeOriginal: "Eagle's Splendor", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2, paladino: 2 }, resumo: "O alvo recebe +4 Car durante 1 min/nível", referencia: srd("eaglesSplendor") },
+  { id: "evocacaoDeSombras", nome: "Evocação de Sombras", nomeOriginal: "Shadow Evocation", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Imita evocação menor que 5º nível, mas apenas 20% real", referencia: srd("shadowEvocation") },
+  { id: "expulsao", nome: "Expulsão", nomeOriginal: "Dismissal", escola: "Abjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Força uma criatura a retornar para seu plano nativo", referencia: srd("dismissal") },
+  { id: "falarComAnimais", nome: "Falar Com Animais", nomeOriginal: "Speak with Animals", escola: "Adivinhação", niveis: { patrulheiro: 1 }, resumo: "Você pode se comunicar com animais naturais", referencia: srd("speakWithAnimals") },
+  { id: "falarComPlantas", nome: "Falar Com Plantas", nomeOriginal: "Speak with Plants", escola: "Adivinhação", niveis: { patrulheiro: 2 }, resumo: "Você pode conversar com plantas normais e criaturas planta", referencia: srd("speakWithPlants") },
+  { id: "flechaAcidaDeMelf", nome: "Flecha Ácida de Melf", nomeOriginal: "Melf's Acid Arrow", escola: "Conjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Ataque de toque à distância; 2d4 de dano na 1ª rodada + 1 rodada a cada três níveis", referencia: srd("acidArrow") },
+  { id: "flechaDeChamas", nome: "Flecha de Chamas", nomeOriginal: "Flame Arrow", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Flechas causam +1d6 de dano de fogo", referencia: srd("flameArrow") },
+  { id: "forcaDoTouro", nome: "Força do Touro", nomeOriginal: "Bull's Strength", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2, paladino: 2 }, resumo: "O alvo ganha +4 For por 1 min/nível", referencia: srd("bullsStrength") },
+  { id: "formaDeArvore", nome: "Forma de Árvore", nomeOriginal: "Tree Shape", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "Você se parece exatamente com uma árvore durante 1 hora/nível", referencia: srd("treeShape") },
+  { id: "formaGasosa", nome: "Forma Gasosa", nomeOriginal: "Gaseous Form", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "O alvo fica incorpóreo e pode voar lentamente", referencia: srd("gaseousForm") },
+  { id: "furia", nome: "Fúria", nomeOriginal: "Rage", escola: "Encantamento", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Concede +2 For e Con, +1 em testes de resistência de Vontade e −2 CA", referencia: srd("rage") },
+  { id: "globoDeInvulnerabilidadeMenor", nome: "Globo de Invulnerabilidade Menor", nomeOriginal: "Globe of Invulnerability, Lesser", escola: "Abjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Impede efeitos de magias de 1º a 3º nível", referencia: srd("globeOfInvulnerabilityLesser") },
+  { id: "globosDeLuz", nome: "Globos de Luz", nomeOriginal: "Dancing Lights", escola: "Evocação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Cria tochas ou outras luzes ilusórias", referencia: srd("dancingLights") },
+  { id: "grito", nome: "Grito", nomeOriginal: "Shout", escola: "Evocação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Deixa todos no cone surdos e causa 5d6 de dano sônico", referencia: srd("shout") },
+  { id: "heroismo", nome: "Heroísmo", nomeOriginal: "Heroism", escola: "Encantamento", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Concede +2 nas jogadas de ataque, testes de resistência e perícias", referencia: srd("heroism") },
+  { id: "hipnotismo", nome: "Hipnotismo", nomeOriginal: "Hypnotism", escola: "Encantamento", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Fascina 2d4 DV de criaturas", referencia: srd("hypnotism") },
+  { id: "identificacao", nome: "Identificação", nomeOriginal: "Identify", escola: "Adivinhação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Determina uma habilidade de um item mágico", referencia: srd("identify") },
+  { id: "idiomas", nome: "Idiomas", nomeOriginal: "Tongues", escola: "Adivinhação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Fala qualquer idioma", referencia: srd("tongues") },
+  { id: "imagemMaior", nome: "Imagem Maior", nomeOriginal: "Major Image", escola: "Ilusão", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Como imagem silenciosa, mas com som, cheiro e temperatura", referencia: srd("majorImage") },
+  { id: "imagemMenor", nome: "Imagem Menor", nomeOriginal: "Minor Image", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Como imagem silenciosa, mas com algum som", referencia: srd("minorImage") },
+  { id: "imagemPersistente", nome: "Imagem Persistente", nomeOriginal: "Persistent Image", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Como imagem maior, mas não é necessária concentração", referencia: srd("persistentImage") },
+  { id: "imagemSilenciosa", nome: "Imagem Silenciosa", nomeOriginal: "Silent Image", escola: "Ilusão", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Cria uma ilusão menor", referencia: srd("silentImage") },
+  { id: "imobilizarAnimal", nome: "Imobilizar Animal", nomeOriginal: "Hold Animal", escola: "Encantamento", niveis: { patrulheiro: 2 }, resumo: "Paralisa um animal, 1 rodada/nível", referencia: srd("holdAnimal") },
+  { id: "imobilizarMonstro", nome: "Imobilizar Monstro", nomeOriginal: "Hold Monster", escola: "Encantamento", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Como imobilizar pessoa, mas com qualquer criatura", referencia: srd("holdMonster") },
+  { id: "imobilizarMortosVivos", nome: "Imobilizar Mortos-Vivos", nomeOriginal: "Halt Undead", escola: "Necromancia", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Imobiliza mortos-vivos durante 1 rodada/nível", referencia: srd("haltUndead") },
+  { id: "imobilizarPessoa", nome: "Imobilizar Pessoa", nomeOriginal: "Hold Person", escola: "Encantamento", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Imobiliza uma pessoa durante 1 rodada/nível", referencia: srd("holdPerson") },
+  { id: "invisibilidade", nome: "Invisibilidade", nomeOriginal: "Invisibility", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "O alvo fica invisível durante 1 min/nível ou até atacar", referencia: srd("invisibility") },
+  { id: "invisibilidadeContraAnimais", nome: "Invisibilidade Contra Animais", nomeOriginal: "Hide from Animals", escola: "Abjuração", niveis: { patrulheiro: 1 }, resumo: "Os animais não podem perceber 1 alvo/nível", referencia: srd("hideFromAnimals") },
+  { id: "invisibilidadeMaior", nome: "Invisibilidade Maior", nomeOriginal: "Invisibility, Greater", escola: "Ilusão", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Como invisibilidade, mas o alvo pode atacar", referencia: srd("invisibilityGreater") },
+  { id: "invocarAliadoDaNatureza1", nome: "Invocar Aliado da Natureza I", nomeOriginal: "Summon Nature's Ally I", escola: "Conjuração", niveis: { patrulheiro: 1 }, resumo: "Invoca animais para auxiliar o conjurador", referencia: srd("summonNaturesAllyI") },
+  { id: "invocarAliadoDaNatureza2", nome: "Invocar Aliado da Natureza II", nomeOriginal: "Summon Nature's Ally II", escola: "Conjuração", niveis: { patrulheiro: 2 }, resumo: "Invoca animais para auxiliar o conjurador", referencia: srd("summonNaturesAllyII") },
+  { id: "invocarAliadoDaNatureza3", nome: "Invocar Aliado da Natureza III", nomeOriginal: "Summon Nature's Ally III", escola: "Conjuração", niveis: { patrulheiro: 3 }, resumo: "Invoca animais para auxiliar o conjurador", referencia: srd("summonNaturesAllyIII") },
+  { id: "invocarAliadoDaNatureza4", nome: "Invocar Aliado da Natureza IV", nomeOriginal: "Summon Nature's Ally IV", escola: "Conjuração", niveis: { patrulheiro: 4 }, resumo: "Invoca animais para auxiliar o conjurador", referencia: srd("summonNaturesAllyIV") },
+  { id: "invocarCriaturas1", nome: "Invocar Criaturas I", nomeOriginal: "Summon Monster I", escola: "Conjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Invoca um ser extraplanar para auxiliar o conjurador", referencia: srd("summonMonsterI") },
+  { id: "invocarCriaturas2", nome: "Invocar Criaturas II", nomeOriginal: "Summon Monster II", escola: "Conjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Invoca um ser extraplanar para auxiliar o conjurador", referencia: srd("summonMonsterII") },
+  { id: "invocarCriaturas3", nome: "Invocar Criaturas III", nomeOriginal: "Summon Monster III", escola: "Conjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Invoca um ser extraplanar para auxiliar o conjurador", referencia: srd("summonMonsterIII") },
+  { id: "invocarCriaturas4", nome: "Invocar Criaturas IV", nomeOriginal: "Summon Monster IV", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Invoca um ser extraplanar para auxiliar o conjurador", referencia: srd("summonMonsterIV") },
+  { id: "invocarCriaturas5", nome: "Invocar Criaturas V", nomeOriginal: "Summon Monster V", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Invoca um ser extraplanar para auxiliar o conjurador", referencia: srd("summonMonsterV") },
+  { id: "invocarEnxames", nome: "Invocar Enxames", nomeOriginal: "Summon Swarm", escola: "Conjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Invoca enxame de morcegos, ratos ou aranhas", referencia: srd("summonSwarm") },
+  { id: "lamaEmPedra", nome: "Lama em Pedra", nomeOriginal: "Transmute Mud to Rock", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Transforma dois cubos de 3 m/nível", referencia: srd("transmuteMudToRock") },
+  { id: "laminaAfiada", nome: "Lâmina Afiada", nomeOriginal: "Keen Edge", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Dobra a margem de ameaça normal da arma", referencia: srd("keenEdge") },
+  { id: "lentidao", nome: "Lentidão", nomeOriginal: "Slow", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "1 alvo/nível pode realizar apenas 1 ação/rodada, −2 na CA e −2 nas jogadas de ataque", referencia: srd("slow") },
+  { id: "lequeCromatico", nome: "Leque Cromático", nomeOriginal: "Color Spray", escola: "Ilusão", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Deixa inconsciente, cega ou atordoa 1d6 criaturas fracas", referencia: srd("colorSpray") },
+  { id: "lerMagias", nome: "Ler Magias", nomeOriginal: "Read Magic", escola: "Adivinhação", niveis: { feiticeiro: 0, mago: 0, paladino: 1, patrulheiro: 1 }, resumo: "Decifra pergaminhos ou grimórios", referencia: srd("readMagic") },
+  { id: "levitacao", nome: "Levitação", nomeOriginal: "Levitate", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "O alvo flutua para cima ou para baixo ao seu comando", referencia: srd("levitate") },
+  { id: "ligacaoTelepaticaDeRary", nome: "Ligação Telepática de Rary", nomeOriginal: "Rary's Telepathic Bond", escola: "Adivinhação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Ligação permite que aliados se comuniquem", referencia: srd("telepathicBond") },
+  { id: "localizarCriatura", nome: "Localizar Criatura", nomeOriginal: "Locate Creature", escola: "Adivinhação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Indica a direção de uma criatura familiar", referencia: srd("locateCreature") },
+  { id: "localizarObjetos", nome: "Localizar Objetos", nomeOriginal: "Locate Object", escola: "Adivinhação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Sente a direção do objeto (específico ou tipo)", referencia: srd("locateObject") },
+  { id: "lufadaDeVento", nome: "Lufada de Vento", nomeOriginal: "Gust of Wind", escola: "Evocação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Afasta ou derruba criaturas Pequenas", referencia: srd("gustOfWind") },
+  { id: "luz", nome: "Luz", nomeOriginal: "Light", escola: "Evocação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Um objeto brilha como uma tocha", referencia: srd("light") },
+  { id: "luzDoDia", nome: "Luz do Dia", nomeOriginal: "Daylight", escola: "Evocação", niveis: { feiticeiro: 3, mago: 3, paladino: 3 }, resumo: "Ilumina 18 m de raio com uma luz brilhante", referencia: srd("daylight") },
+  { id: "malogro", nome: "Malogro", nomeOriginal: "Blight", escola: "Necromancia", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Murcha 1 planta ou causa 1d6/nível de dano contra criaturas tipo planta", referencia: srd("blight") },
+  { id: "maoEspectral", nome: "Mão Espectral", nomeOriginal: "Spectral Hand", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Cria mão brilhante que faz ataques de toque", referencia: srd("spectralHand") },
+  { id: "maoInterpostaDeBigby", nome: "Mão Interposta de Bigby", nomeOriginal: "Bigby's Interposing Hand", escola: "Evocação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Mão fornece cobertura contra 1 oponente", referencia: srd("interposingHand") },
+  { id: "maosFlamejantes", nome: "Mãos Flamejantes", nomeOriginal: "Burning Hands", escola: "Evocação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "1d4 de dano de fogo/nível (máx. 5d4)", referencia: srd("burningHands") },
+  { id: "maosMagicas", nome: "Mãos Mágicas", nomeOriginal: "Mage Hand", escola: "Transmutação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Telecinésia de 2,5 kg", referencia: srd("mageHand") },
+  { id: "marcaArcana", nome: "Marca Arcana", nomeOriginal: "Arcane Mark", escola: "Universal", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Inscreve uma runa pessoal (visível ou invisível)", referencia: srd("arcaneMark") },
+  { id: "marcaDaJustica", nome: "Marca da Justiça", nomeOriginal: "Mark of Justice", escola: "Necromancia", niveis: { paladino: 4 }, resumo: "Designa a ação que causará uma maldição sobre o alvo", referencia: srd("markOfJustice") },
+  { id: "medo", nome: "Medo", nomeOriginal: "Fear", escola: "Necromancia", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Os alvos dentro do cone fogem durante 1 rodada/nível", referencia: srd("fear") },
+  { id: "melhoriaMnemonicaDeRary", nome: "Melhoria Mnemônica de Rary", nomeOriginal: "Rary's Mnemonic Enhancer", escola: "Transmutação", niveis: { mago: 4 }, resumo: "Somente Mago. Prepare magias adicionais ou mantenha uma recentemente lançada", referencia: srd("mnemonicEnhancer") },
+  { id: "mensageiroAnimal", nome: "Mensageiro Animal", nomeOriginal: "Animal Messenger", escola: "Encantamento", niveis: { patrulheiro: 1 }, resumo: "Envia um animal Miúdo para um local específico", referencia: srd("animalMessenger") },
+  { id: "mensagem", nome: "Mensagem", nomeOriginal: "Message", escola: "Transmutação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Conversação em voz baixa à distância", referencia: srd("message") },
+  { id: "metamorfose", nome: "Metamorfose", nomeOriginal: "Polymorph", escola: "Transmutação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Alvo voluntário assume uma nova forma", referencia: srd("polymorph") },
+  { id: "metamorfoseTorrida", nome: "Metamorfose Tórrida", nomeOriginal: "Baleful Polymorph", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Transforma o alvo num animal inofensivo", referencia: srd("balefulPolymorph") },
+  { id: "miragemArcana", nome: "Miragem Arcana", nomeOriginal: "Mirage Arcana", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Como terreno ilusório, mas com estruturas", referencia: srd("mirageArcana") },
+  { id: "missaoMenor", nome: "Missão Menor", nomeOriginal: "Geas, Lesser", escola: "Encantamento", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Comanda um alvo de 7 DV ou menos", referencia: srd("geasLesser") },
+  { id: "misseisMagicos", nome: "Mísseis Mágicos", nomeOriginal: "Magic Missile", escola: "Evocação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "1d4+1 de dano, +1 míssil a cada dois níveis acima do 1º (máx. +5)", referencia: srd("magicMissile") },
+  { id: "moldarRochas", nome: "Moldar Rochas", nomeOriginal: "Stone Shape", escola: "Transmutação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Molda pedra em qualquer forma", referencia: srd("stoneShape") },
+  { id: "montariaArcana", nome: "Montaria Arcana", nomeOriginal: "Mount", escola: "Conjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Invoca montaria por 2 horas/nível", referencia: srd("mount") },
+  { id: "montariaFantasmagorica", nome: "Montaria Fantasmagórica", nomeOriginal: "Phantom Steed", escola: "Conjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Cria cavalo mágico, permanece durante 1 hora/nível", referencia: srd("phantomSteed") },
+  { id: "movimentacaoLivre", nome: "Movimentação Livre", nomeOriginal: "Freedom of Movement", escola: "Abjuração", niveis: { patrulheiro: 4 }, resumo: "O alvo se move normalmente apesar de impedimentos", referencia: srd("freedomOfMovement") },
+  { id: "muralhaDeEnergia", nome: "Muralha de Energia", nomeOriginal: "Wall of Force", escola: "Evocação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Muralha imune a dano", referencia: srd("wallOfForce") },
+  { id: "muralhaDeFogo", nome: "Muralha de Fogo", nomeOriginal: "Wall of Fire", escola: "Evocação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Causa 2d4 de dano de fogo a 3 m e 1d4 a 6 m; atravessar o muro causa 2d6 +1/nível", referencia: srd("wallOfFire") },
+  { id: "muralhaDeGelo", nome: "Muralha de Gelo", nomeOriginal: "Wall of Ice", escola: "Evocação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Parede de gelo com 15 PV +1/nível, ou esfera que aprisiona o alvo", referencia: srd("wallOfIce") },
+  { id: "muralhaDePedra", nome: "Muralha de Pedra", nomeOriginal: "Wall of Stone", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Cria uma barreira de pedra que pode ser moldada", referencia: srd("wallOfStone") },
+  { id: "muralhaDeVento", nome: "Muralha de Vento", nomeOriginal: "Wind Wall", escola: "Evocação", niveis: { feiticeiro: 3, mago: 3, patrulheiro: 2 }, resumo: "Desvia disparos, criaturas pequenas e gases", referencia: srd("windWall") },
+  { id: "neutralizarVenenos", nome: "Neutralizar Venenos", nomeOriginal: "Neutralize Poison", escola: "Conjuração", niveis: { paladino: 4, patrulheiro: 3 }, resumo: "Imuniza e retira o veneno de um personagem", referencia: srd("neutralizePoison") },
+  { id: "nevasca", nome: "Nevasca", nomeOriginal: "Sleet Storm", escola: "Conjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Atrapalha a visão e o movimento", referencia: srd("sleetStorm") },
+  { id: "nevoa", nome: "Névoa", nomeOriginal: "Fog Cloud", escola: "Conjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Névoa obscurece a visão", referencia: srd("fogCloud") },
+  { id: "nevoaFetida", nome: "Névoa Fétida", nomeOriginal: "Stinking Cloud", escola: "Conjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Vapores nauseantes, 1 rodada/nível", referencia: srd("stinkingCloud") },
+  { id: "nevoaMental", nome: "Névoa Mental", nomeOriginal: "Mind Fog", escola: "Encantamento", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Os alvos na névoa recebem −10 na Sab e testes de Vontade", referencia: srd("mindFog") },
+  { id: "nevoaMortal", nome: "Névoa Mortal", nomeOriginal: "Cloudkill", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Mata sem resistência (3 DV); com resistência (4–6 DV) ou dano de Con", referencia: srd("cloudkill") },
+  { id: "nevoaObscurecente", nome: "Névoa Obscurecente", nomeOriginal: "Obscuring Mist", escola: "Conjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Névoa espessa envolve o conjurador", referencia: srd("obscuringMist") },
+  { id: "nevoaSolida", nome: "Névoa Sólida", nomeOriginal: "Solid Fog", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Bloqueia visão e diminui deslocamento", referencia: srd("solidFog") },
+  { id: "nublar", nome: "Nublar", nomeOriginal: "Blur", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Os ataques têm 20% de chance de fracassar", referencia: srd("blur") },
+  { id: "obscurecerObjeto", nome: "Obscurecer Objeto", nomeOriginal: "Obscure Object", escola: "Abjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Protege um objeto contra adivinhações", referencia: srd("obscureObject") },
+  { id: "olhoArcano", nome: "Olho Arcano", nomeOriginal: "Arcane Eye", escola: "Adivinhação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Olho invisível flutua a 9 m/rodada", referencia: srd("arcaneEye") },
+  { id: "olhosObservadores", nome: "Olhos Observadores", nomeOriginal: "Prying Eyes", escola: "Adivinhação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "1d4 olhos flutuantes +1/nível espionam por você", referencia: srd("pryingEyes") },
+  { id: "ondaDaFadiga", nome: "Onda da Fadiga", nomeOriginal: "Waves of Fatigue", escola: "Necromancia", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Diversos alvos ficam fatigados", referencia: srd("wavesOfFatigue") },
+  { id: "oracao", nome: "Oração", nomeOriginal: "Prayer", escola: "Encantamento", niveis: { paladino: 3 }, resumo: "Os aliados recebem +1 em várias jogadas e os inimigos sofrem −1", referencia: srd("prayer") },
+  { id: "padraoHipnotico", nome: "Padrão Hipnótico", nomeOriginal: "Hypnotic Pattern", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Fascina (2d4+nível) DV de criaturas", referencia: srd("hypnoticPattern") },
+  { id: "padraoPrismatico", nome: "Padrão Prismático", nomeOriginal: "Rainbow Pattern", escola: "Ilusão", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Luz impede 24 DV de criaturas de atacar ou se afastar", referencia: srd("rainbowPattern") },
+  { id: "paginaSecreta", nome: "Página Secreta", nomeOriginal: "Secret Page", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Altera uma página para esconder seu verdadeiro conteúdo", referencia: srd("secretPage") },
+  { id: "paredeIlusoria", nome: "Parede Ilusória", nomeOriginal: "Illusory Wall", escola: "Ilusão", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Muro, chão ou teto parecem reais, mas qualquer coisa pode atravessá-los", referencia: srd("illusoryWall") },
+  { id: "pasmar", nome: "Pasmar", nomeOriginal: "Daze", escola: "Encantamento", niveis: { feiticeiro: 0, mago: 0 }, resumo: "O humanóide (4 DV ou menos) perde sua próxima ação", referencia: srd("daze") },
+  { id: "pasmarMonstro", nome: "Pasmar Monstro", nomeOriginal: "Daze Monster", escola: "Encantamento", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Uma criatura viva (6 DV ou menos) perde a próxima ação", referencia: srd("dazeMonster") },
+  { id: "passosLongos", nome: "Passos Longos", nomeOriginal: "Longstrider", escola: "Transmutação", niveis: { patrulheiro: 1 }, resumo: "Aumenta seu deslocamento", referencia: srd("longstrider") },
+  { id: "passosSemPegadas", nome: "Passos sem Pegadas", nomeOriginal: "Pass without Trace", escola: "Transmutação", niveis: { patrulheiro: 1 }, resumo: "Um alvo/nível não deixa rastros", referencia: srd("passWithoutTrace") },
+  { id: "patasDeAranha", nome: "Patas de Aranha", nomeOriginal: "Spider Climb", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Concede habilidade para andar em parede e tetos", referencia: srd("spiderClimb") },
+  { id: "pedraEmLama", nome: "Pedra em Lama", nomeOriginal: "Transmute Rock to Mud", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Transforma dois cubos de 3 m/nível", referencia: srd("transmuteRockToMud") },
+  { id: "peleDeArvore", nome: "Pele de Árvore", nomeOriginal: "Barkskin", escola: "Transmutação", niveis: { patrulheiro: 2 }, resumo: "Concede +2 (ou mais) de bônus de melhoria na armadura natural", referencia: srd("barkskin") },
+  { id: "peleRochosa", nome: "Pele Rochosa", nomeOriginal: "Stoneskin", escola: "Abjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Ignora 10 pontos de dano/ataque", referencia: srd("stoneskin") },
+  { id: "pequenoRefugioDeLeomund", nome: "Pequeno Refúgio de Leomund", nomeOriginal: "Leomund's Tiny Hut", escola: "Evocação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Cria um abrigo para 10 criaturas", referencia: srd("tinyHut") },
+  { id: "permanencia", nome: "Permanência", nomeOriginal: "Permanency", escola: "Universal", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Torna certas magias permanentes", referencia: srd("permanency") },
+  { id: "pesadelo", nome: "Pesadelo", nomeOriginal: "Nightmare", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Envia visão que causa 1d10 de dano e fadiga", referencia: srd("nightmare") },
+  { id: "pirotecnia", nome: "Pirotecnia", nomeOriginal: "Pyrotechnics", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Transforma fogo em luz forte ou fumaça", referencia: srd("pyrotechnics") },
+  { id: "piscar", nome: "Piscar", nomeOriginal: "Blink", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Você desaparece e reaparece aleatoriamente durante 1 rodada/nível", referencia: srd("blink") },
+  { id: "poeiraOfuscante", nome: "Poeira Ofuscante", nomeOriginal: "Glitterdust", escola: "Conjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Deixa criaturas cegas e destaca as invisíveis", referencia: srd("glitterdust") },
+  { id: "portaDimensional", nome: "Porta Dimensional", nomeOriginal: "Dimension Door", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Teletransporta o conjurador a uma distância curta", referencia: srd("dimensionDoor") },
+  { id: "praga", nome: "Praga", nomeOriginal: "Contagion", escola: "Necromancia", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Infecta um alvo com a doença escolhida", referencia: srd("contagion") },
+  { id: "presaMagica", nome: "Presa Mágica", nomeOriginal: "Magic Fang", escola: "Transmutação", niveis: { patrulheiro: 1 }, resumo: "Uma arma natural do alvo recebe +1 de bônus para ataques e dano", referencia: srd("magicFang") },
+  { id: "presaMagicaMaior", nome: "Presa Mágica Maior", nomeOriginal: "Magic Fang, Greater", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "Uma arma natural do alvo recebe +1 de bônus para ataques e dano a cada 3 níveis (máx. +5)", referencia: srd("magicFangGreater") },
+  { id: "prestidigitacao", nome: "Prestidigitação", nomeOriginal: "Prestidigitation", escola: "Universal", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Realiza pequenos truques", referencia: srd("prestidigitation") },
+  { id: "protecaoContraAMorte", nome: "Proteção Contra a Morte", nomeOriginal: "Death Ward", escola: "Necromancia", niveis: { paladino: 4 }, resumo: "Fornece imunidade a magias e efeitos de energia negativa", referencia: srd("deathWard") },
+  { id: "protecaoContraAOrdem", nome: "Proteção Contra a Ordem", nomeOriginal: "Protection from Law", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "+2 na CA e nos testes de resistência, impede controle mental, isola elementais e seres planares", referencia: srd("protectionFromLaw") },
+  { id: "protecaoContraElementos", nome: "Proteção Contra Elementos", nomeOriginal: "Protection from Energy", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3, patrulheiro: 2 }, resumo: "Absorve 12 de dano/nível de um tipo de energia", referencia: srd("protectionFromEnergy") },
+  { id: "protecaoContraFlechas", nome: "Proteção Contra Flechas", nomeOriginal: "Protection from Arrows", escola: "Abjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "O alvo fica imune à maioria dos ataques à distância", referencia: srd("protectionFromArrows") },
+  { id: "protecaoContraOBem", nome: "Proteção Contra o Bem", nomeOriginal: "Protection from Good", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "+2 na CA e nos testes de resistência, impede controle mental, isola elementais e seres planares", referencia: srd("protectionFromGood") },
+  { id: "protecaoContraOCaos", nome: "Proteção Contra o Caos", nomeOriginal: "Protection from Chaos", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1, paladino: 1 }, resumo: "+2 na CA e nos testes de resistência, impede controle mental, isola elementais e seres planares", referencia: srd("protectionFromChaos") },
+  { id: "protecaoContraOMal", nome: "Proteção Contra o Mal", nomeOriginal: "Protection from Evil", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1, paladino: 1 }, resumo: "+2 na CA e nos testes de resistência, impede controle mental, isola elementais e seres planares", referencia: srd("protectionFromEvil") },
+  { id: "protegerOutro", nome: "Proteger Outro", nomeOriginal: "Shield Other", escola: "Abjuração", niveis: { paladino: 2 }, resumo: "Você sofre metade do dano dirigido ao alvo", referencia: srd("shieldOther") },
+  { id: "quedaSuave", nome: "Queda Suave", nomeOriginal: "Feather Fall", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Objetos ou criaturas caem lentamente", referencia: srd("featherFall") },
+  { id: "raioArdente", nome: "Raio Ardente", nomeOriginal: "Scorching Ray", escola: "Evocação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "1 raio a cada 4 níveis (máx. 3), toque à distância causa 4d6 por fogo", referencia: srd("scorchingRay") },
+  { id: "raioDeAcido", nome: "Raio de Ácido", nomeOriginal: "Acid Splash", escola: "Conjuração", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Raio causa 1d3 de dano de ácido", referencia: srd("acidSplash") },
+  { id: "raioDeExaustao", nome: "Raio de Exaustão", nomeOriginal: "Ray of Exhaustion", escola: "Necromancia", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Raio torna o alvo exausto", referencia: srd("rayOfExhaustion") },
+  { id: "raioDeGelo", nome: "Raio de Gelo", nomeOriginal: "Ray of Frost", escola: "Evocação", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Raio causa 1d3 de dano de frio", referencia: srd("rayOfFrost") },
+  { id: "raioDoEnfraquecimento", nome: "Raio do Enfraquecimento", nomeOriginal: "Ray of Enfeeblement", escola: "Necromancia", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Raio reduz For em 1d6+1 a cada dois níveis", referencia: srd("rayOfEnfeeblement") },
+  { id: "recipienteArcano", nome: "Recipiente Arcano", nomeOriginal: "Magic Jar", escola: "Necromancia", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Permite possuir outra criatura", referencia: srd("magicJar") },
+  { id: "recuoAcelerado", nome: "Recuo Acelerado", nomeOriginal: "Expeditious Retreat", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Aumenta +9 m seu deslocamento", referencia: srd("expeditiousRetreat") },
+  { id: "reduzirAnimal", nome: "Reduzir Animal", nomeOriginal: "Reduce Animal", escola: "Transmutação", niveis: { patrulheiro: 3 }, resumo: "Encolhe um animal voluntário", referencia: srd("reduceAnimal") },
+  { id: "reduzirPessoa", nome: "Reduzir Pessoa", nomeOriginal: "Reduce Person", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Diminui pela metade o tamanho de um humanóide", referencia: srd("reducePerson") },
+  { id: "reduzirPessoaEmMassa", nome: "Reduzir Pessoa em Massa", nomeOriginal: "Reduce Person, Mass", escola: "Transmutação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Reduz diversas criaturas", referencia: srd("reducePersonMass") },
+  { id: "reflexos", nome: "Reflexos", nomeOriginal: "Mirror Image", escola: "Ilusão", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Cria cópias falsas de você (1d4 + 1 a cada 3 níveis, máx. 8)", referencia: srd("mirrorImage") },
+  { id: "refugioSeguroDeLeomund", nome: "Refúgio Seguro de Leomund", nomeOriginal: "Leomund's Secure Shelter", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Cria uma cabana resistente", referencia: srd("secureShelter") },
+  { id: "relampago", nome: "Relâmpago", nomeOriginal: "Lightning Bolt", escola: "Evocação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Eletricidade causa 1d6 de dano/nível", referencia: srd("lightningBolt") },
+  { id: "removerCegueiraSurdez", nome: "Remover Cegueira/Surdez", nomeOriginal: "Remove Blindness/Deafness", escola: "Conjuração", niveis: { paladino: 3 }, resumo: "Cura condições normais ou mágicas", referencia: srd("removeBlindnessDeafness") },
+  { id: "removerDoencas", nome: "Remover Doenças", nomeOriginal: "Remove Disease", escola: "Conjuração", niveis: { patrulheiro: 3 }, resumo: "Cura todas as doenças que afetam o alvo", referencia: srd("removeDisease") },
+  { id: "removerMaldicao", nome: "Remover Maldição", nomeOriginal: "Remove Curse", escola: "Abjuração", niveis: { feiticeiro: 4, mago: 4, paladino: 3 }, resumo: "Liberta objeto ou pessoa de maldição", referencia: srd("removeCurse") },
+  { id: "removerParalisia", nome: "Remover Paralisia", nomeOriginal: "Remove Paralysis", escola: "Conjuração", niveis: { paladino: 2 }, resumo: "Liberta uma ou mais criaturas de paralisia ou lentidão", referencia: srd("removeParalysis") },
+  { id: "repelirInsetos", nome: "Repelir Insetos", nomeOriginal: "Repel Vermin", escola: "Abjuração", niveis: { patrulheiro: 3 }, resumo: "Insetos se mantêm a 3 m de distância", referencia: srd("repelVermin") },
+  { id: "resistencia", nome: "Resistência", nomeOriginal: "Resistance", escola: "Abjuração", niveis: { feiticeiro: 0, mago: 0, paladino: 1 }, resumo: "O alvo recebe +1 para testes de resistência", referencia: srd("resistance") },
+  { id: "resistenciaAElementos", nome: "Resistência à Elementos", nomeOriginal: "Resist Energy", escola: "Abjuração", niveis: { feiticeiro: 2, mago: 2, paladino: 2, patrulheiro: 1 }, resumo: "Ignora 10 (ou mais) de dano por ataque de um tipo de energia", referencia: srd("resistEnergy") },
+  { id: "respirarNaAgua", nome: "Respirar na Água", nomeOriginal: "Water Breathing", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Os alvos podem respirar sob a água", referencia: srd("waterBreathing") },
+  { id: "restauracao", nome: "Restauração", nomeOriginal: "Restoration", escola: "Conjuração", niveis: { paladino: 4 }, resumo: "Recupera níveis negativos e valores de habilidade", referencia: srd("restoration") },
+  { id: "restauracaoMenor", nome: "Restauração Menor", nomeOriginal: "Restoration, Lesser", escola: "Conjuração", niveis: { paladino: 1 }, resumo: "Dissipa penalidades mágicas de habilidade ou recupera 1d4 de dano de habilidade", referencia: srd("restorationLesser") },
+  { id: "retardarEnvenenamento", nome: "Retardar Envenenamento", nomeOriginal: "Delay Poison", escola: "Conjuração", niveis: { paladino: 2, patrulheiro: 1 }, resumo: "Impede que veneno cause dano ao alvo durante 1 hora/nível", referencia: srd("delayPoison") },
+  { id: "risoHistericoDeTasha", nome: "Riso Histérico de Tasha", nomeOriginal: "Tasha's Hideous Laughter", escola: "Encantamento", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Alvo perde suas ações durante 1 rodada/nível", referencia: srd("hideousLaughter") },
+  { id: "rogarMaldicao", nome: "Rogar Maldição", nomeOriginal: "Bestow Curse", escola: "Necromancia", niveis: { feiticeiro: 4, mago: 4 }, resumo: "−6 numa habilidade, −4 nos ataques, testes de resistência e testes; ou 50% de chance de perder cada ação", referencia: srd("bestowCurse") },
+  { id: "romperMortoVivo", nome: "Romper Morto-Vivo", nomeOriginal: "Disrupt Undead", escola: "Necromancia", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Causa 1d6 de dano a um morto-vivo", referencia: srd("disruptUndead") },
+  { id: "runasExplosivas", nome: "Runas Explosivas", nomeOriginal: "Explosive Runes", escola: "Abjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Causam 6d6 de dano caso decifradas", referencia: srd("explosiveRunes") },
+  { id: "sabedoriaDaCoruja", nome: "Sabedoria da Coruja", nomeOriginal: "Owl's Wisdom", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2, paladino: 2, patrulheiro: 2 }, resumo: "O alvo ganha +4 Sab por 1 min/nível", referencia: srd("owlsWisdom") },
+  { id: "salto", nome: "Salto", nomeOriginal: "Jump", escola: "Transmutação", niveis: { feiticeiro: 1, mago: 1, patrulheiro: 1 }, resumo: "O alvo recebe bônus nos testes de Saltar", referencia: srd("jump") },
+  { id: "santuarioParticularDeMordenkainen", nome: "Santuário Particular de Mordenkainen", nomeOriginal: "Mordenkainen's Private Sanctum", escola: "Abjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Evita espionagem ou vidência por 24 horas", referencia: srd("magesPrivateSanctum") },
+  { id: "seloDaSerpenteSepia", nome: "Selo da Serpente Sépia", nomeOriginal: "Sepia Snake Sigil", escola: "Conjuração", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Cria símbolo no texto que imobilizará o leitor", referencia: srd("sepiaSnakeSigil") },
+  { id: "servoInvisivel", nome: "Servo Invisível", nomeOriginal: "Unseen Servant", escola: "Conjuração", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Cria uma força invisível que obedece a suas ordens", referencia: srd("unseenServant") },
+  { id: "simboloDaDor", nome: "Símbolo da Dor", nomeOriginal: "Symbol of Pain", escola: "Necromancia", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Runa ativada causa dor às criaturas próximas", referencia: srd("symbolOfPain") },
+  { id: "simboloDoSono", nome: "Símbolo do Sono", nomeOriginal: "Symbol of Sleep", escola: "Encantamento", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Runa ativada coloca as criaturas próximas para dormir", referencia: srd("symbolOfSleep") },
+  { id: "similaridade", nome: "Similaridade", nomeOriginal: "Seeming", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Muda a aparência de 1 pessoa/2 níveis", referencia: srd("seeming") },
+  { id: "somFantasma", nome: "Som Fantasma", nomeOriginal: "Ghost Sound", escola: "Ilusão", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Imita sons", referencia: srd("ghostSound") },
+  { id: "sonho", nome: "Sonho", nomeOriginal: "Dream", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Envia uma mensagem para qualquer alvo dormindo", referencia: srd("dream") },
+  { id: "sono", nome: "Sono", nomeOriginal: "Sleep", escola: "Encantamento", niveis: { feiticeiro: 1, mago: 1 }, resumo: "4 DV de criaturas caem num sono parecido com o coma", referencia: srd("sleep") },
+  { id: "sonoProfundo", nome: "Sono Profundo", nomeOriginal: "Deep Slumber", escola: "Encantamento", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Coloca 10 DV de criaturas para dormir", referencia: srd("deepSlumber") },
+  { id: "sugestao", nome: "Sugestão", nomeOriginal: "Suggestion", escola: "Encantamento", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Força o alvo a seguir um curso de ação", referencia: srd("suggestion") },
+  { id: "suportarElementos", nome: "Suportar Elementos", nomeOriginal: "Endure Elements", escola: "Abjuração", niveis: { feiticeiro: 1, mago: 1, paladino: 1, patrulheiro: 1 }, resumo: "Mantém uma criatura confortável dentro de ambientes áridos", referencia: srd("endureElements") },
+  { id: "teia", nome: "Teia", nomeOriginal: "Web", escola: "Conjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Enche uma esfera de 6 m com teias de aranha", referencia: srd("web") },
+  { id: "telecinesia", nome: "Telecinésia", nomeOriginal: "Telekinesis", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Arremessa ou movimenta objeto, ataca ou arremessa criatura", referencia: srd("telekinesis") },
+  { id: "teletransporte", nome: "Teletransporte", nomeOriginal: "Teleport", escola: "Conjuração", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Transporta você instantaneamente para 150 km/nível", referencia: srd("teleport") },
+  { id: "tempestadeGlacial", nome: "Tempestade Glacial", nomeOriginal: "Ice Storm", escola: "Evocação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Granizo causa 5d6 de dano em um cilindro de 12 m", referencia: srd("iceStorm") },
+  { id: "tentaculosNegrosDeEvard", nome: "Tentáculos Negros de Evard", nomeOriginal: "Evard's Black Tentacles", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Tentáculos agarram em 4,5 m", referencia: srd("blackTentacles") },
+  { id: "terrenoIlusorio", nome: "Terreno Ilusório", nomeOriginal: "Hallucinatory Terrain", escola: "Ilusão", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Faz um tipo de terreno parecer outro (de campo para floresta, etc.)", referencia: srd("hallucinatoryTerrain") },
+  { id: "toqueChocante", nome: "Toque Chocante", nomeOriginal: "Shocking Grasp", escola: "Evocação", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Toque causa 1d6/nível de dano de eletricidade (máx. 5d6)", referencia: srd("shockingGrasp") },
+  { id: "toqueDaFadiga", nome: "Toque da Fadiga", nomeOriginal: "Touch of Fatigue", escola: "Necromancia", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Ataque de toque fatiga o alvo", referencia: srd("touchOfFatigue") },
+  { id: "toqueDaIdiotice", nome: "Toque da Idiotice", nomeOriginal: "Touch of Idiocy", escola: "Encantamento", niveis: { feiticeiro: 2, mago: 2 }, resumo: "O alvo sofre 1d6 pontos de dano de Int, Sab e Car", referencia: srd("touchOfIdiocy") },
+  { id: "toqueDoCarnical", nome: "Toque do Carniçal", nomeOriginal: "Ghoul Touch", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Paralisa um alvo, que exala um cheiro horrendo", referencia: srd("ghoulTouch") },
+  { id: "toqueMacabro", nome: "Toque Macabro", nomeOriginal: "Chill Touch", escola: "Necromancia", niveis: { feiticeiro: 1, mago: 1 }, resumo: "1 toque/nível causa 1d6 de dano e talvez 1 de dano de For", referencia: srd("chillTouch") },
+  { id: "toqueVampirico", nome: "Toque Vampírico", nomeOriginal: "Vampiric Touch", escola: "Necromancia", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Toque causa 1d6 a cada 2 níveis, o conjurador recebe o dano como PV", referencia: srd("vampiricTouch") },
+  { id: "trancaArcana", nome: "Tranca Arcana", nomeOriginal: "Arcane Lock", escola: "Abjuração", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Fecha magicamente uma porta ou baú", referencia: srd("arcaneLock") },
+  { id: "transformacaoMomentanea", nome: "Transformação Momentânea", nomeOriginal: "Disguise Self", escola: "Ilusão", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Muda sua aparência", referencia: srd("disguiseSelf") },
+  { id: "truqueDaCorda", nome: "Truque da Corda", nomeOriginal: "Rope Trick", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Até oito criaturas se escondem em um espaço extra-dimensional", referencia: srd("ropeTrick") },
+  { id: "velocidade", nome: "Velocidade", nomeOriginal: "Haste", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "1 criatura/nível se move com mais rapidez, +1 no ataque, na CA e nos testes de resistência de Reflexos", referencia: srd("haste") },
+  { id: "ventoSussurrante", nome: "Vento Sussurrante", nomeOriginal: "Whispering Wind", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Envia uma mensagem curta a até 1,5 km/nível", referencia: srd("whisperingWind") },
+  { id: "ventriloquismo", nome: "Ventriloquismo", nomeOriginal: "Ventriloquism", escola: "Ilusão", niveis: { feiticeiro: 1, mago: 1 }, resumo: "Projeta sua voz durante 1 min/nível", referencia: srd("ventriloquism") },
+  { id: "verOInvisivel", nome: "Ver o Invisível", nomeOriginal: "See Invisibility", escola: "Adivinhação", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Revela criaturas ou objetos invisíveis", referencia: srd("seeInvisibility") },
+  { id: "videncia", nome: "Vidência", nomeOriginal: "Scrying", escola: "Adivinhação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Espiona alguém à distância", referencia: srd("scrying") },
+  { id: "vigorDoUrso", nome: "Vigor do Urso", nomeOriginal: "Bear's Endurance", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2, patrulheiro: 2 }, resumo: "O alvo ganha +4 Con por 1 min/nível", referencia: srd("bearsEndurance") },
+  { id: "virtude", nome: "Virtude", nomeOriginal: "Virtue", escola: "Transmutação", niveis: { paladino: 1 }, resumo: "O alvo ganha 1 PV temporário", referencia: srd("virtue") },
+  { id: "visaoArcana", nome: "Visão Arcana", nomeOriginal: "Arcane Sight", escola: "Adivinhação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "Auras mágicas se tornam visíveis para o conjurador", referencia: srd("arcaneSight") },
+  { id: "visaoFalsa", nome: "Visão Falsa", nomeOriginal: "False Vision", escola: "Ilusão", niveis: { feiticeiro: 5, mago: 5 }, resumo: "Engana uma vidência usando ilusões", referencia: srd("falseVision") },
+  { id: "visaoNoEscuro", nome: "Visão no Escuro", nomeOriginal: "Darkvision", escola: "Transmutação", niveis: { feiticeiro: 2, mago: 2, patrulheiro: 3 }, resumo: "O alvo enxerga 18 m na escuridão total", referencia: srd("darkvision") },
+  { id: "vitalidadeIlusoria", nome: "Vitalidade Ilusória", nomeOriginal: "False Life", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Alvo recebe 1d10 PV temporário +1/nível (máx. 10)", referencia: srd("falseLife") },
+  { id: "voo", nome: "Vôo", nomeOriginal: "Fly", escola: "Transmutação", niveis: { feiticeiro: 3, mago: 3 }, resumo: "O alvo voa (deslocamento de 18 m)", referencia: srd("fly") },
+  { id: "vooProlongado", nome: "Vôo Prolongado", nomeOriginal: "Overland Flight", escola: "Transmutação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "O conjurador voa com deslocamento de 12 m e pode “marchar”", referencia: srd("overlandFlight") },
+  { id: "zonaDaVerdade", nome: "Zona da Verdade", nomeOriginal: "Zone of Truth", escola: "Encantamento", niveis: { paladino: 2 }, resumo: "Os alvos na área não podem mentir", referencia: srd("zoneOfTruth") },
+];
+
+/** Aceita id, nome em português ou nome em inglês. */
+export function magiaPor(chave: string): Magia | undefined {
+  if (!chave) return undefined;
+  const alvo = chave.toLowerCase();
+  return MAGIAS.find(
+    (m) =>
+      m.id.toLowerCase() === alvo ||
+      m.nome.toLowerCase() === alvo ||
+      m.nomeOriginal.toLowerCase() === alvo,
+  );
+}
+
+/** Magias de uma classe, opcionalmente de um nível só, em ordem alfabética. */
+export function magiasDaClasse(classeId: string, nivel?: number): Magia[] {
+  return MAGIAS.filter((m) => {
+    const n = m.niveis[classeId];
+    return n != null && (nivel == null || n === nivel);
+  }).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+}
