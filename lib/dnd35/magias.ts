@@ -8,7 +8,12 @@
 //
 // A tabela é montada por lista, aos poucos. O que já entrou:
 //   Bardo 0–6, Clérigo 0–9, Druida 0–9, Paladino 1–4, Patrulheiro 1–4,
-//   Feiticeiro e Mago 0–9. Faltam só as magias de domínio do Clérigo.
+//   Feiticeiro e Mago 0–9 — todas as listas de classe do Livro do Jogador.
+//
+// Os domínios de clérigo ficam em dominios.ts e apontam para cá por id. Quatro
+// magias existem só por domínio e por isso têm `niveis` vazio: nenhuma classe
+// as concede. Não são órfãs — `scripts` de conferência checam que todas estão
+// referenciadas por algum domínio.
 //
 // Uma exceção à regra de seguir o livro: o 8º nível do Druida lista, além de
 // "Controlar Plantas" (Control Plants), uma linha "Comandar Plantas: Plantas
@@ -169,6 +174,7 @@ export const MAGIAS: Magia[] = [
   { id: "circuloMagicoContraOMal", nome: "Círculo Mágico Contra o Mal", nomeOriginal: "Magic Circle Against Evil", escola: "Abjuração", niveis: { clerigo: 3, feiticeiro: 3, mago: 3, paladino: 3 }, resumo: "Como as magias de proteção, mas com 3 m de raio e 10 min/nível", referencia: srd("magicCircleAgainstEvil") },
   { id: "clarividenciaClariaudiencia", nome: "Clarividência/Clariaudiência", nomeOriginal: "Clairaudience/Clairvoyance", escola: "Adivinhação", niveis: { bardo: 3, feiticeiro: 3, mago: 3 }, resumo: "Ouve ou enxerga à distância durante 1 min/nível", referencia: srd("clairaudienceClairvoyance") },
   { id: "clone", nome: "Clone", nomeOriginal: "Clone", escola: "Necromancia", niveis: { feiticeiro: 8, mago: 8 }, resumo: "Duplicata desperta quando o original morre", referencia: srd("clone") },
+  { id: "coleraDaOrdem", nome: "Cólera da Ordem", nomeOriginal: "Order's Wrath", escola: "Evocação", niveis: {  }, resumo: "Causa dano e distrai criaturas caóticas", referencia: srd("ordersWrath") },
   { id: "colunaDeChamas", nome: "Coluna de Chamas", nomeOriginal: "Flame Strike", escola: "Evocação", niveis: { clerigo: 5, druida: 4 }, resumo: "Destrói inimigos através de fogo divino (1d6/nível)", referencia: srd("flameStrike") },
   { id: "comandarMortosVivos", nome: "Comandar Mortos-vivos", nomeOriginal: "Command Undead", escola: "Necromancia", niveis: { feiticeiro: 2, mago: 2 }, resumo: "Morto-vivo obedece seus comandos", referencia: srd("commandUndead") },
   { id: "comandarPlantas", nome: "Comandar Plantas", nomeOriginal: "Command Plants", escola: "Transmutação", niveis: { druida: 4, patrulheiro: 3 }, resumo: "Comande as ações de uma ou mais criaturas tipo planta", referencia: srd("commandPlants") },
@@ -241,6 +247,7 @@ export const MAGIAS: Magia[] = [
   { id: "despistar", nome: "Despistar", nomeOriginal: "Mislead", escola: "Ilusão", niveis: { bardo: 5, feiticeiro: 6, mago: 6 }, resumo: "Deixa o conjurador invisível e cria uma duplicata ilusória", referencia: srd("mislead") },
   { id: "destruicao", nome: "Destruição", nomeOriginal: "Destruction", escola: "Necromancia", niveis: { clerigo: 7 }, resumo: "Mata alvo e destrói os restos", referencia: srd("destruction") },
   { id: "destruicaoRastejante", nome: "Destruição Rastejante", nomeOriginal: "Creeping Doom", escola: "Conjuração", niveis: { druida: 7 }, resumo: "Enxame de insetos ataca sob seu comando", referencia: srd("creepingDoom") },
+  { id: "destruicaoSagrada", nome: "Destruição Sagrada", nomeOriginal: "Holy Smite", escola: "Evocação", niveis: {  }, resumo: "Causa dano e cega criaturas malignas", referencia: srd("holySmite") },
   { id: "destruirMortosVivos", nome: "Destruir Mortos-Vivos", nomeOriginal: "Undeath to Death", escola: "Necromancia", niveis: { clerigo: 6, feiticeiro: 6, mago: 6 }, resumo: "Destrói 1d4 DV/nível de mortos-vivos (máx. 20d4)", referencia: srd("undeathToDeath") },
   { id: "detectarAnimaisOuPlantas", nome: "Detectar Animais ou Plantas", nomeOriginal: "Detect Animals or Plants", escola: "Adivinhação", niveis: { druida: 1, patrulheiro: 1 }, resumo: "Detecta espécies de animais ou plantas", referencia: srd("detectAnimalsOrPlants") },
   { id: "detectarArmadilhas", nome: "Detectar Armadilhas", nomeOriginal: "Detect Snares and Pits", escola: "Adivinhação", niveis: { druida: 1, patrulheiro: 1 }, resumo: "Revela armadilhas naturais ou primitivas", referencia: srd("detectSnaresAndPits") },
@@ -432,6 +439,7 @@ export const MAGIAS: Magia[] = [
   { id: "maosMagicas", nome: "Mãos Mágicas", nomeOriginal: "Mage Hand", escola: "Transmutação", niveis: { bardo: 0, feiticeiro: 0, mago: 0 }, resumo: "Telecinésia de 2,5 kg", referencia: srd("mageHand") },
   { id: "marcaArcana", nome: "Marca Arcana", nomeOriginal: "Arcane Mark", escola: "Universal", niveis: { feiticeiro: 0, mago: 0 }, resumo: "Inscreve uma runa pessoal (visível ou invisível)", referencia: srd("arcaneMark") },
   { id: "marcaDaJustica", nome: "Marca da Justiça", nomeOriginal: "Mark of Justice", escola: "Necromancia", niveis: { clerigo: 5, paladino: 4 }, resumo: "Designa a ação que causará uma maldição sobre o alvo", referencia: srd("markOfJustice") },
+  { id: "marteloDoCaos", nome: "Martelo do Caos", nomeOriginal: "Chaos Hammer", escola: "Evocação", niveis: {  }, resumo: "Causa dano e nocauteia criaturas Leais", referencia: srd("chaosHammer") },
   { id: "matar", nome: "Matar", nomeOriginal: "Slay Living", escola: "Necromancia", niveis: { clerigo: 5 }, resumo: "Ataque de toque que mata um alvo", referencia: srd("slayLiving") },
   { id: "medo", nome: "Medo", nomeOriginal: "Fear", escola: "Necromancia", niveis: { bardo: 3, feiticeiro: 4, mago: 4 }, resumo: "Os alvos dentro do cone fogem durante 1 rodada/nível", referencia: srd("fear") },
   { id: "melhoriaMnemonicaDeRary", nome: "Melhoria Mnemônica de Rary", nomeOriginal: "Rary's Mnemonic Enhancer", escola: "Transmutação", niveis: { mago: 4 }, resumo: "Somente Mago. Prepare magias adicionais ou mantenha uma recentemente lançada", referencia: srd("mnemonicEnhancer") },
@@ -472,6 +480,7 @@ export const MAGIAS: Magia[] = [
   { id: "nevoaSolida", nome: "Névoa Sólida", nomeOriginal: "Solid Fog", escola: "Conjuração", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Bloqueia visão e diminui deslocamento", referencia: srd("solidFog") },
   { id: "nublar", nome: "Nublar", nomeOriginal: "Blur", escola: "Ilusão", niveis: { bardo: 2, feiticeiro: 2, mago: 2 }, resumo: "Os ataques têm 20% de chance de fracassar", referencia: srd("blur") },
   { id: "nuvemIncendiaria", nome: "Nuvem Incendiária", nomeOriginal: "Incendiary Cloud", escola: "Conjuração", niveis: { feiticeiro: 8, mago: 8 }, resumo: "Nuvem causa 4d6 de dano de fogo/rodada", referencia: srd("incendiaryCloud") },
+  { id: "nuvemProfana", nome: "Nuvem Profana", nomeOriginal: "Unholy Blight", escola: "Evocação", niveis: {  }, resumo: "Causa dano e adoece criaturas bondosas", referencia: srd("unholyBlight") },
   { id: "obscurecerObjeto", nome: "Obscurecer Objeto", nomeOriginal: "Obscure Object", escola: "Abjuração", niveis: { bardo: 1, clerigo: 3, feiticeiro: 2, mago: 2 }, resumo: "Protege um objeto contra adivinhações", referencia: srd("obscureObject") },
   { id: "olhoArcano", nome: "Olho Arcano", nomeOriginal: "Arcane Eye", escola: "Adivinhação", niveis: { feiticeiro: 4, mago: 4 }, resumo: "Olho invisível flutua a 9 m/rodada", referencia: srd("arcaneEye") },
   { id: "olhosObservadores", nome: "Olhos Observadores", nomeOriginal: "Prying Eyes", escola: "Adivinhação", niveis: { feiticeiro: 5, mago: 5 }, resumo: "1d4 olhos flutuantes +1/nível espionam por você", referencia: srd("pryingEyes") },
