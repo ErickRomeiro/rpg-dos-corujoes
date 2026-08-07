@@ -1,4 +1,5 @@
-// Domínios de clérigo do D&D 3.5 (Livro do Jogador, cap. 11, p. 186–189).
+// Domínios de clérigo do D&D 3.5: os 22 do Livro do Jogador (cap. 11,
+// p. 186–189) e os 5 do Livro Completo do Guerreiro (cap. 3, p. 114–115).
 //
 // Um domínio não é uma classe, e por isso não entrou como chave em
 // `niveis` lá em magias.ts: ele é um pacote — divindades que o oferecem, um
@@ -10,9 +11,15 @@
 // `magias[8]` a de 9º. Não existe domínio com buraco no meio, então o array é
 // sempre de nove ids — não faz sentido repetir o nível dentro de cada item.
 //
-// Quatro magias aqui referenciadas não são concedidas por classe nenhuma e
+// Sete magias aqui referenciadas não são concedidas por classe nenhuma e
 // existem só através do domínio: destruicaoSagrada, marteloDoCaos,
-// nuvemProfana e coleraDaOrdem. Em magias.ts elas aparecem com `niveis` vazio.
+// nuvemProfana e coleraDaOrdem, do Livro do Jogador, mais furiaValente,
+// rugidoDoLeao e mantoDaBravuraMaior, que são exclusivas do domínio da
+// Coragem. Em magias.ts elas aparecem com `niveis` vazio.
+//
+// Das quatro magias novas do Livro Completo do Guerreiro, só mantoDaBravura
+// escapa disso: o livro manda incluí-la também nas listas de clérigo e
+// paladino, e lá ela é Clr 3 / Pal 2.
 
 import { MAGIAS, type Magia } from "./magias.ts";
 
@@ -21,10 +28,18 @@ export type Dominio = {
   nome: string;
   /** Divindades do panteão padrão que oferecem o domínio. */
   deuses: string[];
+  /**
+   * Divindades que só oferecem o domínio se o Mestre deixar. Os domínios do
+   * Livro Completo do Guerreiro são de deuses do panteão daquele livro e
+   * chegam ao panteão do Livro do Jogador por essa porta.
+   */
+  deusesOpcionais?: string[];
   /** O que o domínio concede além das magias, no texto do livro. */
   poderConcedido: string;
   /** Nove ids de MAGIAS: a posição é o nível, de 1 a 9. */
   magias: string[];
+  /** Livro de origem, quando não é o núcleo. Ausente = Livro do Jogador. */
+  livro?: string;
 };
 
 export const DOMINIOS: Dominio[] = [
@@ -197,6 +212,57 @@ export const DOMINIOS: Dominio[] = [
     poderConcedido:
       "Durante 1 rodada/nível de clérigo por dia, você pode agir sem ser incomodado por efeitos mágicos que impedem o movimento (similar ao efeito da magia movimentação livre). Esse efeito é automático e permanece até seu tempo máximo diário se esgotar ou não ser mais necessário. Ele pode ser ativado várias vezes em um dia (até a quantidade máxima de rodadas disponível). Essa é uma habilidade sobrenatural. A Sobrevivência passa a ser uma perícia de classe.",
     magias: ["passosLongos", "localizarObjetos", "voo", "portaDimensional", "teletransporte", "encontrarOCaminho", "teletransporteMaior", "passagemInvisivel", "projecaoAstral"],
+  },
+
+  // --- Livro Completo do Guerreiro ---
+  {
+    id: "coragem",
+    nome: "Coragem",
+    deuses: ["Valkar"],
+    deusesOpcionais: ["Heironeous", "Yondalla"],
+    poderConcedido:
+      "O personagem emana uma aura de coragem que fornece +4 de bônus nos testes de resistência contra efeitos de medo para todos os aliados (incluindo o personagem) num raio de 3 m. Essa habilidade sobrenatural somente está ativa quando o usuário estiver consciente.",
+    magias: ["removerMedo", "ajuda", "mantoDaBravura", "heroismo", "furiaValente", "banqueteDeHerois", "heroismoMaior", "rugidoDoLeao", "mantoDaBravuraMaior"],
+    livro: "Livro Completo do Guerreiro",
+  },
+  {
+    id: "destino",
+    nome: "Destino",
+    deuses: ["Lyris"],
+    deusesOpcionais: ["Nerull", "Obad-Hai"],
+    poderConcedido:
+      "O personagem adquire a habilidade esquiva sobrenatural, que lhe permite conservar seu bônus de Destreza na CA (se houver), mesmo em situações de surpresa ou contra ataques de um oponente invisível. No entanto, ele ainda perde seu bônus de Destreza na CA quando estiver imobilizado. Caso tenha a habilidade esquiva sobrenatural de uma classe diferente, ele adiciona seus níveis de clérigo à classe original para determinar se adquire a esquiva sobrenatural aprimorada.",
+    magias: ["ataqueCerteiro", "augurio", "rogarMaldicao", "condicao", "marcaDaJustica", "tarefaMissao", "visao", "limparAMente", "sextoSentido"],
+    livro: "Livro Completo do Guerreiro",
+  },
+  {
+    id: "nobreza",
+    nome: "Nobreza",
+    deuses: ["Altua"],
+    deusesOpcionais: ["Heironeous", "Pelor"],
+    poderConcedido:
+      "Uma vez por dia, o personagem tem a habilidade similar a magia de inspirar seus aliados, concedendo-lhes +2 de bônus de moral em testes de resistência, jogadas de ataque, testes de habilidade e perícia e dano com armas. Eles devem ser capazes de ouvir o personagem durante uma rodada. Ativar essa habilidade é uma ação padrão. Ela permanece ativa durante uma quantidade de rodadas equivalente ao bônus de Carisma do usuário.",
+    magias: ["auxilioDivino", "cativar", "roupaEncantada", "discernirMentiras", "comandoMaior", "tarefaMissao", "repulsao", "ordem", "tempestadeDaVinganca"],
+    livro: "Livro Completo do Guerreiro",
+  },
+  {
+    id: "planejamento",
+    nome: "Planejamento",
+    deuses: ["Halmyr"],
+    deusesOpcionais: ["Boccob", "Vecna", "Wee Jas"],
+    poderConcedido: "Talento Estender Magia.",
+    magias: ["visaoDaMorte", "augurio", "clarividenciaClariaudiencia", "condicao", "detectarVidencia", "banqueteDeHerois", "videnciaMaior", "discernirLocalizacao", "pararOTempo"],
+    livro: "Livro Completo do Guerreiro",
+  },
+  {
+    id: "tirania",
+    nome: "Tirania",
+    deuses: ["Typhos"],
+    deusesOpcionais: ["Hextor", "Vecna", "Wee Jas"],
+    poderConcedido:
+      "Adicione +1 na CD dos testes de resistência contra qualquer magia de compulsão que o personagem conjurar.",
+    magias: ["comando", "cativar", "discernirMentiras", "medo", "comandoMaior", "tarefaMissao", "maoPoderosaDeBigby", "enfeiticarMonstroEmMassa", "dominarMonstro"],
+    livro: "Livro Completo do Guerreiro",
   },
 ];
 

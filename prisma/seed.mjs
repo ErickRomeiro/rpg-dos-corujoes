@@ -53,7 +53,7 @@ function montarLinhas() {
     const elemento = ELEMENTOS_WU_JEN[m.id];
     add("MAGIA", m.nome, elemento ? { ...m, elementoWuJen: elemento } : m, m.livro ?? FONTE);
   }
-  for (const d of DOMINIOS) add("DOMINIO", d.nome, d);
+  for (const d of DOMINIOS) add("DOMINIO", d.nome, d, d.livro ?? FONTE);
   for (const i of ITENS_COMUNS) add("ITEM", i.nome, i);
 
   return linhas;
