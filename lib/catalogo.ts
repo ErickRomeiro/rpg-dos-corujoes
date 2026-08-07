@@ -58,7 +58,19 @@ export async function listarCatalogo<T>(
   return [...porNome.values()].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 }
 
-/** Busca por nome, para autocompletes de conjuntos grandes (magias). */
+/**
+ * Busca por nome, para autocompletes de conjuntos grandes (magias).
+ *
+ * Procura no nome em português e também no `nomeOriginal` em inglês guardado
+ * dentro de `dados`. O catálogo é todo em português — é o que aparece na tela
+ * e o que a ficha grava —, mas quem joga chega ao nome em inglês o tempo todo:
+ * está na planilha da mesa, nos livros que não foram traduzidos e em qualquer
+ * busca na internet. Sem isso, digitar "fireball" não acha Bola de Fogo.
+ *
+ * Nem todo tipo do catálogo tem `nomeOriginal` — armas e armaduras, por
+ * exemplo, não têm. Para esses o segundo filtro simplesmente não casa, o que
+ * não atrapalha: é um OR.
+ */
 export async function buscarCatalogo<T>(
   tipo: TipoCatalogo,
   termo: string,
@@ -69,8 +81,24 @@ export async function buscarCatalogo<T>(
     where: {
       sistema: SISTEMA,
       tipo,
-      nome: { contains: termo, mode: "insensitive" },
-      OR: [{ mesaId: null }, ...(mesaId ? [{ mesaId }] : [])],
+      // Os dois OR precisam ser irmãos dentro de um AND: um decide de quem é o
+      // conteúdo, o outro onde o termo casa. Deixá-los no mesmo nível faria o
+      // segundo sobrescrever o primeiro e vazar homebrew de outras mesas.
+      AND: [
+        { OR: [{ mesaId: null }, ...(mesaId ? [{ mesaId }] : [])] },
+        {
+          OR: [
+            { nome: { contains: termo, mode: "insensitive" } },
+            {
+              dados: {
+                path: ["nomeOriginal"],
+                string_contains: termo,
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+      ],
     },
     select: { id: true, nome: true, fonte: true, mesaId: true, dados: true },
     orderBy: { nome: "asc" },
