@@ -27,7 +27,7 @@ const { RACAS } = await import("../lib/dnd35/racas.ts");
 const { CLASSES } = await import("../lib/dnd35/classes.ts");
 const { ARMAS, ARMADURAS, ITENS_COMUNS } = await import("../lib/dnd35/equipamento.ts");
 const { TALENTOS } = await import("../lib/dnd35/talentos.ts");
-const { MAGIAS } = await import("../lib/dnd35/magias.ts");
+const { MAGIAS, ELEMENTOS_WU_JEN } = await import("../lib/dnd35/magias.ts");
 const { DOMINIOS } = await import("../lib/dnd35/dominios.ts");
 
 /**
@@ -47,7 +47,12 @@ function montarLinhas() {
   for (const a of ARMAS) add("ARMA", a.nome, a);
   for (const a of ARMADURAS) add("ARMADURA", a.nome, a);
   for (const t of TALENTOS) add("TALENTO", t.nome, t);
-  for (const m of MAGIAS) add("MAGIA", m.nome, m, m.livro ?? FONTE);
+  // O elemento do Wu Jen mora fora de `Magia` (ver magias.ts), mas a linha do
+  // banco é uma cópia para consulta: sem ele o app não teria como mostrar.
+  for (const m of MAGIAS) {
+    const elemento = ELEMENTOS_WU_JEN[m.id];
+    add("MAGIA", m.nome, elemento ? { ...m, elementoWuJen: elemento } : m, m.livro ?? FONTE);
+  }
   for (const d of DOMINIOS) add("DOMINIO", d.nome, d);
   for (const i of ITENS_COMUNS) add("ITEM", i.nome, i);
 
