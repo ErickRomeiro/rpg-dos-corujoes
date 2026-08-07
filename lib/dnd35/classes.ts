@@ -211,6 +211,22 @@ export const CLASSES: Classe[] = [
     ],
     livro: "Livro Completo do Arcano",
   },
+
+  // --- Livro Completo do Guerreiro ---
+  {
+    id: "laminaMaldita",
+    nome: "Lâmina Maldita",
+    dadoVida: 10,
+    bba: "boa",
+    resistenciasBoas: ["vontade"],
+    pontosPericia: 2,
+    conjuracao: "carisma",
+    periciasClasse: [
+      "blefar", "cavalgar", "concentracao", "conhecimento", "diplomacia",
+      "identificarMagia", "intimidar", "oficio", "profissao",
+    ],
+    livro: "Livro Completo do Guerreiro",
+  },
 ];
 
 /**
