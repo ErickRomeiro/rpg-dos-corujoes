@@ -43,7 +43,7 @@ function montarLinhas() {
     linhas.push({ tipo, nome, dados, fonte });
 
   for (const r of RACAS) add("RACA", r.nome, r);
-  for (const c of CLASSES) add("CLASSE", c.nome, c);
+  for (const c of CLASSES) add("CLASSE", c.nome, c, c.livro ?? FONTE);
   for (const a of ARMAS) add("ARMA", a.nome, a);
   for (const a of ARMADURAS) add("ARMADURA", a.nome, a);
   for (const t of TALENTOS) add("TALENTO", t.nome, t);

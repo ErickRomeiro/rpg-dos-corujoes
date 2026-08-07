@@ -1,9 +1,12 @@
-// Classes do núcleo de D&D 3.5 (SRD).
+// Classes de D&D 3.5.
 //
 // O que está aqui é o suficiente para a ficha se preencher: dado de vida,
 // progressão de BBA, quais resistências são boas, pontos de perícia e a lista
 // de perícias de classe. Habilidades de classe por nível ficam fora — são
 // muitas e variam demais para caber num autopreenchimento útil.
+//
+// O núcleo vem do SRD; o que vem de outro livro traz `livro` preenchido, do
+// mesmo jeito que em magias.ts.
 
 export type ProgressaoBba = "boa" | "media" | "ruim";
 
@@ -21,6 +24,8 @@ export type Classe = {
   periciasClasse: string[];
   /** Atributo-chave de conjuração, quando a classe lança magias. */
   conjuracao?: "inteligencia" | "sabedoria" | "carisma";
+  /** Livro de origem, quando não é o núcleo. Ausente = Livro do Jogador. */
+  livro?: string;
 };
 
 export const CLASSES: Classe[] = [
@@ -176,6 +181,35 @@ export const CLASSES: Classe[] = [
       "blefar", "concentracao", "conhecimento", "identificarMagia", "oficio",
       "profissao",
     ],
+  },
+
+  // --- Livro Completo do Arcano ---
+  {
+    id: "magoDaGuerra",
+    nome: "Mago da Guerra",
+    dadoVida: 6,
+    bba: "ruim",
+    resistenciasBoas: ["vontade"],
+    pontosPericia: 2,
+    conjuracao: "carisma",
+    periciasClasse: [
+      "concentracao", "conhecimento", "identificarMagia", "intimidar",
+      "oficio", "profissao",
+    ],
+    livro: "Livro Completo do Arcano",
+  },
+  {
+    id: "wuJen",
+    nome: "Wu Jen",
+    dadoVida: 4,
+    bba: "ruim",
+    resistenciasBoas: ["vontade"],
+    pontosPericia: 2,
+    conjuracao: "inteligencia",
+    periciasClasse: [
+      "concentracao", "conhecimento", "identificarMagia", "oficio", "profissao",
+    ],
+    livro: "Livro Completo do Arcano",
   },
 ];
 
