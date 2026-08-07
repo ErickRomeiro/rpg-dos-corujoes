@@ -1,8 +1,33 @@
-// Talentos do núcleo de D&D 3.5 (SRD).
+// Talentos de D&D 3.5: o núcleo, mais os 10 de estilo de armas do Livro
+// Completo do Guerreiro (cap. 3, Tabela 3-4).
 //
 // Guardamos nome, categoria, pré-requisito e um resumo curto do benefício —
 // o suficiente para autocompletar o campo de talento na ficha e já trazer a
 // observação preenchida. A regra completa fica nos livros do Compêndio.
+//
+// ATENÇÃO: o bloco do núcleo não foi transcrito do Livro do Jogador como as
+// magias foram — veio do SRD em inglês, traduzido por fora, e diverge da
+// Tabela 5-1 (p. 90–91) em dezenas de nomes. Alguns exemplos conferidos:
+// "Investida Aprimorada" é Encontrão Aprimorado no livro, "Derrubar
+// Aprimorado" é Imobilização Aprimorada, "Golpe Desarmado Aprimorado" é
+// Ataque Desarmado Aprimorado, "Crítico Aprimorado" é Sucesso Decisivo
+// Aprimorado, "Aparar Projéteis" é Desviar Objetos, "Correr" é Corrida.
+// Pior: "Mãos Leves" aqui é o Dedos Lépidos do livro (+2 em Abrir Fechaduras
+// e Operar Mecanismo), enquanto no livro Mãos Leves é outro talento (+2 em
+// Prestidigitação e Usar Cordas). Há também benefício trocado — Ampliar Magia
+// dobra a área, não o alcance; quem dobra o alcance é Aumentar Magia — e
+// talentos que faltam: Ágil, Separar Aprimorado, Ataque em Movimento, Ataque
+// Atordoante, Liderança, Dominar Magia, Tiro Longo, entre outros.
+//
+// Por isso os talentos de estilo abaixo escrevem os pré-requisitos como os
+// livros imprimem, não como o bloco do núcleo os nomeia: aí o Guerreiro e o
+// Livro do Jogador concordam entre si, e quem diverge é o bloco de cima.
+// Consertar o núcleo é um trabalho à parte, e mexe em nome que ficha antiga
+// pode ter gravado.
+//
+// Uma nota do próprio Guerreiro: a Tabela 3-4 omite "Ataque Poderoso" nos
+// pré-requisitos de Bigorna do Trovão, mas a descrição na p. 112 o exige.
+// Ficou o da descrição, que é o texto e não o resumo.
 
 export type Talento = {
   nome: string;
@@ -11,9 +36,13 @@ export type Talento = {
     | "Combate"
     | "Metamágico"
     | "Criação de itens"
-    | "Proficiência";
+    | "Proficiência"
+    /** Estilo de armas: uma combinação fixa de duas armas. Só no Guerreiro. */
+    | "Estilo";
   preRequisito: string;
   beneficio: string;
+  /** Livro de origem, quando não é o núcleo. Ausente = Livro do Jogador. */
+  livro?: string;
 };
 
 export const TALENTOS: Talento[] = [
@@ -128,6 +157,18 @@ export const TALENTOS: Talento[] = [
   { nome: "Usar Armadura Pesada", categoria: "Proficiência", preRequisito: "Usar Armadura Média", beneficio: "Sem penalidade com armadura pesada." },
   { nome: "Usar Escudos", categoria: "Proficiência", preRequisito: "", beneficio: "Sem penalidade ao usar escudos." },
   { nome: "Usar Escudo Corporal", categoria: "Proficiência", preRequisito: "Usar Escudos", beneficio: "Permite usar escudo corporal sem penalidade extra." },
+
+  // --- Estilo de armas (Livro Completo do Guerreiro, Tabela 3-4) ---
+  { nome: "Alabarda Giratória", categoria: "Estilo", preRequisito: "Reflexos de Combate, Combater com Duas Armas, Foco em Arma (alabarda)", beneficio: "No ataque total com alabarda: +1 de esquiva na CA e um ataque adicional com −5, causando 1d6 + ½ do bônus de Força.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Bigorna do Trovão", categoria: "Estilo", preRequisito: "For 13, Separar Aprimorado, Ataque Poderoso, Combater com Duas Armas, Foco em Arma (martelo de guerra ou leve), Foco em Arma (machado de batalha, machadinha ou machado de guerra dos anões)", beneficio: "Alvo atingido pelo martelo e pelo machado na mesma rodada fica pasmo por 1 rodada se falhar na Fortitude (CD 10 + ½ do nível + For).", livro: "Livro Completo do Guerreiro" },
+  { nome: "Cajado Veloz", categoria: "Estilo", preRequisito: "Especialização em Combate, Esquiva, Combater com Duas Armas, Foco em Arma (cajado)", beneficio: "Empunhando um cajado, +2 de esquiva na CA somados à penalidade tomada em Especialização em Combate.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Espada Alta, Machado Baixo", categoria: "Estilo", preRequisito: "Imobilização Aprimorada, Combater com Duas Armas, Foco em Arma (espada bastarda, espada longa, espada curta ou cimitarra), Foco em Arma (machado de batalha, machadinha ou machado de guerra dos anões)", beneficio: "Tentativa de imobilização como ação livre contra o alvo atingido pela espada e pelo machado na mesma rodada.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Lâmina do Martelo", categoria: "Estilo", preRequisito: "For 15, Encontrão Aprimorado, Combater com Duas Armas, Foco em Arma (espada bastarda, espada longa ou cimitarra), Foco em Arma (martelo de guerra ou leve)", beneficio: "Alvo atingido pelo martelo e pela espada na mesma rodada cai no chão se falhar na Fortitude (CD 10 + ½ do nível + For).", livro: "Livro Completo do Guerreiro" },
+  { nome: "Lua Crescente", categoria: "Estilo", preRequisito: "Desarme Aprimorado, Combater com Duas Armas, Combater com Duas Armas Aprimorado, Foco em Arma (adaga), Foco em Arma (espada bastarda, espada longa, cimitarra ou espada curta)", beneficio: "Tentativa de desarme como ação livre contra o alvo atingido pela espada e pela adaga na mesma rodada.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Maça Relâmpago", categoria: "Estilo", preRequisito: "Reflexos de Combate, Combater com Duas Armas, Foco em Arma (maça leve)", beneficio: "Com uma maça em cada mão, um ataque adicional a cada ameaça de sucesso decisivo.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Presa do Urso", categoria: "Estilo", preRequisito: "For 15, Ataque Poderoso, Combater com Duas Armas, Foco em Arma (adaga), Foco em Arma (machado de batalha, machadinha ou machado de guerra dos anões)", beneficio: "Inicia Agarrar como ação livre, sem ataque de toque, contra o alvo atingido pelo machado e pela adaga na mesma rodada.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Rede e Tridente", categoria: "Estilo", preRequisito: "Des 15, Usar Arma Exótica (rede), Combater com Duas Armas, Foco em Arma (tridente)", beneficio: "Ação de rodada completa: arremessa a rede e, se prender o alvo, dá um passo de 1,5 m e desfere um ataque total com o tridente.", livro: "Livro Completo do Guerreiro" },
+  { nome: "Três Montanhas", categoria: "Estilo", preRequisito: "For 13, Trespassar, Encontrão Aprimorado, Ataque Poderoso, Foco em Arma (maça pesada, clava grande ou maça-estrela)", beneficio: "Alvo atingido duas vezes na mesma rodada com a mesma arma de concussão fica enjoado por 1 rodada se falhar na Fortitude (CD 10 + ½ do nível + For).", livro: "Livro Completo do Guerreiro" },
 ];
 
 export function talentoPor(nome: string): Talento | undefined {

@@ -46,7 +46,7 @@ function montarLinhas() {
   for (const c of CLASSES) add("CLASSE", c.nome, c, c.livro ?? FONTE);
   for (const a of ARMAS) add("ARMA", a.nome, a);
   for (const a of ARMADURAS) add("ARMADURA", a.nome, a);
-  for (const t of TALENTOS) add("TALENTO", t.nome, t);
+  for (const t of TALENTOS) add("TALENTO", t.nome, t, t.livro ?? FONTE);
   // O elemento do Wu Jen mora fora de `Magia` (ver magias.ts), mas a linha do
   // banco é uma cópia para consulta: sem ele o app não teria como mostrar.
   for (const m of MAGIAS) {
