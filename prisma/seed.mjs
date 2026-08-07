@@ -9,55 +9,16 @@
 //
 // A fonte da verdade continua sendo os arquivos em lib/dnd35/, versionados no
 // git. O banco é a cópia consultável pelo app.
+//
+// O que este script NÃO faz é apagar. Item renomeado nas tabelas vira linha
+// nova aqui e a antiga fica para trás — quem varre isso é o
+// scripts/limpar-catalogo.mjs, que mostra antes de remover. Os dois montam o
+// catálogo pela mesma função, em catalogo.mjs, para não discordarem.
 
-import { readFileSync } from "node:fs";
 import pg from "pg";
+import { SISTEMA, FONTE, carregarEnv, montarLinhas } from "./catalogo.mjs";
 
-for (const linha of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-  const m = linha.match(/^([A-Z_0-9]+)=(.*)$/);
-  if (m) process.env[m[1]] ??= m[2].replace(/^"|"$/g, "");
-}
-
-const SISTEMA = "dnd35";
-const FONTE = "SRD 3.5";
-
-// Os arquivos de dados são TypeScript só por causa dos tipos; o conteúdo é
-// JSON puro. Lemos com o strip-types do Node para não duplicar as tabelas.
-const { RACAS } = await import("../lib/dnd35/racas.ts");
-const { CLASSES } = await import("../lib/dnd35/classes.ts");
-const { ARMAS, ARMADURAS, ITENS_COMUNS } = await import("../lib/dnd35/equipamento.ts");
-const { TALENTOS } = await import("../lib/dnd35/talentos.ts");
-const { MAGIAS, ELEMENTOS_WU_JEN } = await import("../lib/dnd35/magias.ts");
-const { DOMINIOS } = await import("../lib/dnd35/dominios.ts");
-
-/**
- * Monta as linhas do catálogo a partir das tabelas.
- *
- * A `fonte` de cada linha é o SRD, exceto onde a magia declara o livro de
- * onde veio — nem tudo no catálogo é conteúdo aberto, e rotular um livro
- * fechado como SRD seria falso.
- */
-function montarLinhas() {
-  const linhas = [];
-  const add = (tipo, nome, dados, fonte = FONTE) =>
-    linhas.push({ tipo, nome, dados, fonte });
-
-  for (const r of RACAS) add("RACA", r.nome, r);
-  for (const c of CLASSES) add("CLASSE", c.nome, c, c.livro ?? FONTE);
-  for (const a of ARMAS) add("ARMA", a.nome, a);
-  for (const a of ARMADURAS) add("ARMADURA", a.nome, a);
-  for (const t of TALENTOS) add("TALENTO", t.nome, t, t.livro ?? FONTE);
-  // O elemento do Wu Jen mora fora de `Magia` (ver magias.ts), mas a linha do
-  // banco é uma cópia para consulta: sem ele o app não teria como mostrar.
-  for (const m of MAGIAS) {
-    const elemento = ELEMENTOS_WU_JEN[m.id];
-    add("MAGIA", m.nome, elemento ? { ...m, elementoWuJen: elemento } : m, m.livro ?? FONTE);
-  }
-  for (const d of DOMINIOS) add("DOMINIO", d.nome, d, d.livro ?? FONTE);
-  for (const i of ITENS_COMUNS) add("ITEM", i.nome, i);
-
-  return linhas;
-}
+carregarEnv();
 
 const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
 await client.connect();
