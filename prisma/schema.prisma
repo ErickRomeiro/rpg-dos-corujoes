@@ -111,6 +111,7 @@ enum TipoCatalogo {
   ITEM
   DIVINDADE
   IDIOMA
+  DOMINIO
 }
 
 model ItemCatalogo {

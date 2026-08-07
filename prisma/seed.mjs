@@ -28,6 +28,7 @@ const { CLASSES } = await import("../lib/dnd35/classes.ts");
 const { ARMAS, ARMADURAS, ITENS_COMUNS } = await import("../lib/dnd35/equipamento.ts");
 const { TALENTOS } = await import("../lib/dnd35/talentos.ts");
 const { MAGIAS } = await import("../lib/dnd35/magias.ts");
+const { DOMINIOS } = await import("../lib/dnd35/dominios.ts");
 
 /** Monta as linhas do catálogo a partir das tabelas do SRD. */
 function montarLinhas() {
@@ -40,6 +41,7 @@ function montarLinhas() {
   for (const a of ARMADURAS) add("ARMADURA", a.nome, a);
   for (const t of TALENTOS) add("TALENTO", t.nome, t);
   for (const m of MAGIAS) add("MAGIA", m.nome, m);
+  for (const d of DOMINIOS) add("DOMINIO", d.nome, d);
   for (const i of ITENS_COMUNS) add("ITEM", i.nome, i);
 
   return linhas;
