@@ -30,17 +30,24 @@ const { TALENTOS } = await import("../lib/dnd35/talentos.ts");
 const { MAGIAS } = await import("../lib/dnd35/magias.ts");
 const { DOMINIOS } = await import("../lib/dnd35/dominios.ts");
 
-/** Monta as linhas do catálogo a partir das tabelas do SRD. */
+/**
+ * Monta as linhas do catálogo a partir das tabelas.
+ *
+ * A `fonte` de cada linha é o SRD, exceto onde a magia declara o livro de
+ * onde veio — nem tudo no catálogo é conteúdo aberto, e rotular um livro
+ * fechado como SRD seria falso.
+ */
 function montarLinhas() {
   const linhas = [];
-  const add = (tipo, nome, dados) => linhas.push({ tipo, nome, dados });
+  const add = (tipo, nome, dados, fonte = FONTE) =>
+    linhas.push({ tipo, nome, dados, fonte });
 
   for (const r of RACAS) add("RACA", r.nome, r);
   for (const c of CLASSES) add("CLASSE", c.nome, c);
   for (const a of ARMAS) add("ARMA", a.nome, a);
   for (const a of ARMADURAS) add("ARMADURA", a.nome, a);
   for (const t of TALENTOS) add("TALENTO", t.nome, t);
-  for (const m of MAGIAS) add("MAGIA", m.nome, m);
+  for (const m of MAGIAS) add("MAGIA", m.nome, m, m.livro ?? FONTE);
   for (const d of DOMINIOS) add("DOMINIO", d.nome, d);
   for (const i of ITENS_COMUNS) add("ITEM", i.nome, i);
 
@@ -57,7 +64,7 @@ try {
   let criados = 0;
   let atualizados = 0;
 
-  for (const { tipo, nome, dados } of linhas) {
+  for (const { tipo, nome, dados, fonte } of linhas) {
     // `mesaId IS NULL` participa da unicidade, mas o Postgres não considera
     // NULLs iguais num índice único comum — então fazemos o upsert na mão.
     const existente = await client.query(
@@ -71,7 +78,7 @@ try {
         `UPDATE "ItemCatalogo"
             SET dados = $1, fonte = $2, "updatedAt" = now()
           WHERE id = $3`,
-        [JSON.stringify(dados), FONTE, existente.rows[0].id],
+        [JSON.stringify(dados), fonte, existente.rows[0].id],
       );
       atualizados++;
     } else {
@@ -79,7 +86,7 @@ try {
         `INSERT INTO "ItemCatalogo"
            (id, sistema, tipo, nome, dados, fonte, "createdAt", "updatedAt")
          VALUES (gen_random_uuid()::text, $1, $2::"TipoCatalogo", $3, $4, $5, now(), now())`,
-        [SISTEMA, tipo, nome, JSON.stringify(dados), FONTE],
+        [SISTEMA, tipo, nome, JSON.stringify(dados), fonte],
       );
       criados++;
     }
