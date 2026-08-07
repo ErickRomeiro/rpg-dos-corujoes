@@ -7,6 +7,12 @@
 //
 // O núcleo vem do SRD; o que vem de outro livro traz `livro` preenchido, do
 // mesmo jeito que em magias.ts.
+//
+// Duas notas sobre as classes do Livro Completo do Guerreiro. O Duelista é o
+// Swashbuckler do original — quem procurar pelo nome em inglês não acha, e a
+// tabela não guarda nome original como a de magias guarda. E o Samurai lista
+// Conhecimento duas vezes (história, e nobreza e realeza); aqui `conhecimento`
+// é um id só, então aparece uma vez.
 
 export type ProgressaoBba = "boa" | "media" | "ruim";
 
@@ -214,6 +220,20 @@ export const CLASSES: Classe[] = [
 
   // --- Livro Completo do Guerreiro ---
   {
+    id: "duelista",
+    nome: "Duelista",
+    dadoVida: 10,
+    bba: "boa",
+    resistenciasBoas: ["fortitude"],
+    pontosPericia: 4,
+    periciasClasse: [
+      "acrobacia", "arteDaFuga", "blefar", "diplomacia", "equilibrio",
+      "escalar", "oficio", "profissao", "saltar", "sentirMotivacao",
+      "usarCordas",
+    ],
+    livro: "Livro Completo do Guerreiro",
+  },
+  {
     id: "laminaMaldita",
     nome: "Lâmina Maldita",
     dadoVida: 10,
@@ -224,6 +244,19 @@ export const CLASSES: Classe[] = [
     periciasClasse: [
       "blefar", "cavalgar", "concentracao", "conhecimento", "diplomacia",
       "identificarMagia", "intimidar", "oficio", "profissao",
+    ],
+    livro: "Livro Completo do Guerreiro",
+  },
+  {
+    id: "samurai",
+    nome: "Samurai",
+    dadoVida: 10,
+    bba: "boa",
+    resistenciasBoas: ["fortitude"],
+    pontosPericia: 2,
+    periciasClasse: [
+      "cavalgar", "concentracao", "conhecimento", "diplomacia", "intimidar",
+      "oficio", "sentirMotivacao",
     ],
     livro: "Livro Completo do Guerreiro",
   },
