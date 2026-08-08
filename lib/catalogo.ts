@@ -11,17 +11,13 @@ import type { Raca } from "@/lib/dnd35/racas";
 import type { Classe } from "@/lib/dnd35/classes";
 import type { ArmaModelo, ArmaduraModelo } from "@/lib/dnd35/equipamento";
 import type { Talento } from "@/lib/dnd35/talentos";
+import { acharNoCatalogo, type EntradaCatalogo } from "@/lib/catalogo-entrada";
+
+// Reexportados para quem já os importava daqui; a definição é client-safe.
+export { acharNoCatalogo, type EntradaCatalogo };
 
 const SISTEMA = "dnd35";
 
-export type EntradaCatalogo<T> = {
-  id: string;
-  nome: string;
-  fonte: string;
-  /** true quando veio do homebrew da mesa. */
-  daMesa: boolean;
-  dados: T;
-};
 
 /**
  * Lista as entradas de um tipo, já resolvendo a precedência do homebrew.
@@ -67,9 +63,12 @@ export async function listarCatalogo<T>(
  * está na planilha da mesa, nos livros que não foram traduzidos e em qualquer
  * busca na internet. Sem isso, digitar "fireball" não acha Bola de Fogo.
  *
+ * Procura também nos `apelidos`, que são os nomes que o item já teve aqui —
+ * ver `acharNoCatalogo`.
+ *
  * Nem todo tipo do catálogo tem `nomeOriginal` — armas e armaduras, por
- * exemplo, não têm. Para esses o segundo filtro simplesmente não casa, o que
- * não atrapalha: é um OR.
+ * exemplo, não têm — e a maioria dos itens não tem apelido nenhum. Para esses
+ * os filtros simplesmente não casam, o que não atrapalha: são todos OR.
  */
 export async function buscarCatalogo<T>(
   tipo: TipoCatalogo,
@@ -96,6 +95,11 @@ export async function buscarCatalogo<T>(
                 mode: "insensitive",
               },
             },
+            // Nome antigo do item, para quem digita o que a ficha gravou antes
+            // de uma renomeação. Aqui a comparação é exata, e não por trecho:
+            // apelido serve para reencontrar um nome inteiro que existiu, não
+            // para alargar a busca.
+            { dados: { path: ["apelidos"], array_contains: termo } },
           ],
         },
       ],

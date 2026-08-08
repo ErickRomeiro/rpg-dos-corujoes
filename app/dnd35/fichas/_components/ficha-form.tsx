@@ -22,6 +22,7 @@ import { ListaEditavel } from "@/app/dnd35/fichas/_components/lista-editavel";
 import { SecaoPericias } from "@/app/dnd35/fichas/_components/secao-pericias";
 import { bbaProgressivo } from "@/lib/dnd35/classes";
 import type { CatalogoFicha } from "@/lib/catalogo";
+import { acharNoCatalogo } from "@/lib/catalogo-entrada";
 import {
   ALINHAMENTOS,
   ATRIBUTOS,
@@ -87,7 +88,7 @@ export function FichaForm({
 
   // --- Autopreenchimento a partir do catálogo ---
 
-  const racaEscolhida = catalogo.racas.find((r) => r.nome === dados.raca);
+  const racaEscolhida = acharNoCatalogo(catalogo.racas, dados.raca);
 
   /**
    * Escolher a raça preenche tamanho, deslocamento e idiomas, e acrescenta os
@@ -95,7 +96,7 @@ export function FichaForm({
    * sozinhos — o jogador informa o valor final, e a ficha só lembra o ajuste.
    */
   function escolherRaca(nome: string) {
-    const entrada = catalogo.racas.find((r) => r.nome === nome);
+    const entrada = acharNoCatalogo(catalogo.racas, nome);
     if (!entrada) {
       set("raca", nome);
       return;
@@ -293,7 +294,7 @@ export function FichaForm({
         ) : (
           <ul className="space-y-3">
             {dados.classes.map((linha, i) => {
-              const c = catalogo.classes.find((x) => x.nome === linha.classe);
+              const c = acharNoCatalogo(catalogo.classes, linha.classe);
               return (
                 <li
                   key={i}

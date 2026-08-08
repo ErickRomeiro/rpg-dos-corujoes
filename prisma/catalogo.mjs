@@ -66,8 +66,13 @@ export function montarLinhas() {
  * aprova a remoção precisa ver a diferença.
  */
 export function renomeadosPorTipo() {
-  const mapa = { TALENTO: new Map() };
-  for (const t of TALENTOS)
-    for (const a of t.apelidos ?? []) mapa.TALENTO.set(a, t.nome);
+  const mapa = { TALENTO: new Map(), ARMA: new Map(), ARMADURA: new Map() };
+  const juntar = (tipo, lista) => {
+    for (const x of lista)
+      for (const a of x.apelidos ?? []) mapa[tipo].set(a, x.nome);
+  };
+  juntar("TALENTO", TALENTOS);
+  juntar("ARMA", ARMAS);
+  juntar("ARMADURA", ARMADURAS);
   return mapa;
 }

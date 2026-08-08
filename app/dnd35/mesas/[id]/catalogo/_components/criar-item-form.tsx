@@ -91,6 +91,9 @@ export function CriarItemForm({ mesaId }: { mesaId: string }) {
         return {
           nome,
           categoria: "Exótica",
+          manejo: "Uma mão",
+          custo: "",
+          danoP: "",
           dano,
           critico,
           alcance,
@@ -101,11 +104,13 @@ export function CriarItemForm({ mesaId }: { mesaId: string }) {
         return {
           nome,
           categoria: "Média",
+          custo: "",
           bonusCa: num(bonusCa),
           desMax: num(desMax),
           penalidade: num(penalidade),
           falhaMagia: num(falhaMagia),
-          deslocamento,
+          deslocamento9: deslocamento,
+          deslocamento6: "",
           peso: num(peso),
         };
       case "TALENTO":
