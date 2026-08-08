@@ -14,6 +14,7 @@
 import { TALENTOS } from "../lib/dnd35/talentos.ts";
 import { ARMAS, ARMADURAS } from "../lib/dnd35/equipamento.ts";
 import { DOMINIOS } from "../lib/dnd35/dominios.ts";
+import { RACAS } from "../lib/dnd35/racas.ts";
 import {
   DIVINDADES,
   DIVINDADES_POR_TRANSCREVER,
@@ -159,6 +160,34 @@ for (const d of DIVINDADES)
       );
   }
 
+// --- 2c. Toda raça do núcleo tem físico, e os dados dele são legíveis?
+//
+// O físico alimenta a sugestão de idade, altura e peso na ficha. Raça sem ele
+// simplesmente não sugere nada — falha silenciosa, que é o que este script
+// existe para impedir.
+const DADO = /^\d+d(\d+|%)$/;
+for (const r of RACAS) {
+  const f = r.fisico;
+  if (!f) {
+    anota("físico", "raça sem idade, altura e peso", r.nome);
+    continue;
+  }
+  const expressoes = [
+    f.idadeExtra.rapido,
+    f.idadeExtra.medio,
+    f.idadeExtra.lento,
+    f.idadeMaxima,
+    f.masculino.alturaDados,
+    f.feminino.alturaDados,
+    f.masculino.pesoDados,
+    f.feminino.pesoDados,
+  ].filter((x) => x != null);
+  for (const e of expressoes)
+    if (!DADO.test(e)) anota("dado", `"${e}" não é uma rolagem`, r.nome);
+  if (!(f.idadeAdulta < f.maturidade && f.maturidade < f.velho && f.velho < f.veneravel))
+    anota("físico", "as idades não estão em ordem crescente", r.nome);
+}
+
 // --- 3. Nenhum apelido pode ser o nome de outra linha da mesma tabela.
 //
 // Esta é a armadilha que já mordeu duas vezes: "Mãos Leves" era o Dedos
@@ -195,7 +224,7 @@ for (const [rotulo, lista] of [
 
 console.log(
   `${TALENTOS.length} talentos, ${ARMAS.length} armas, ${ARMADURAS.length} armaduras, ` +
-    `${DIVINDADES.length} divindades.`,
+    `${DIVINDADES.length} divindades, ${RACAS.length} raças.`,
 );
 
 if (problemas.length === 0) {

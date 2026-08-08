@@ -47,6 +47,9 @@ export const ABREV_ATRIBUTO: Record<ChaveAtributo, string> = {
   carisma: "CAR",
 };
 
+/** O livro (p. 109) só oferece estes dois; o campo aceita outro texto. */
+export const SEXOS = ["Masculino", "Feminino"] as const;
+
 export const ALINHAMENTOS = [
   "Leal e Bom",
   "Neutro e Bom",

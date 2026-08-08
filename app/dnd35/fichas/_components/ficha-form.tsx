@@ -26,9 +26,11 @@ import {
   DEUSES_POR_CLASSE,
   DEUSES_POR_RACA,
 } from "@/lib/dnd35/divindades";
+import { faixasFisicas } from "@/lib/dnd35/racas";
 import { acharNoCatalogo } from "@/lib/catalogo-entrada";
 import {
   ALINHAMENTOS,
+  SEXOS,
   ATRIBUTOS,
   ESCOLAS_MAGIA,
   TAMANHOS,
@@ -92,6 +94,14 @@ export function FichaForm({
 
   // --- Autopreenchimento a partir do catálogo ---
 
+  const racaEscolhida = acharNoCatalogo(catalogo.racas, dados.raca);
+
+  /**
+   * Idade, altura e peso típicos da raça, para aparecer esmaecido no campo
+   * vazio. Some assim que o jogador digita — é sugestão, não valor.
+   */
+  const faixas = faixasFisicas(racaEscolhida?.dados.fisico, dados.sexo);
+
   /**
    * Divindades sugeridas pelo livro para a raça e as classes já escolhidas
    * (Tabelas 6-2 e 6-3). É só ordenação de preferência: o livro fecha toda
@@ -106,9 +116,6 @@ export function FichaForm({
     const unicas = [...new Set(sugeridas)];
     return unicas.length ? `Sugeridas: ${unicas.join(", ")}` : undefined;
   })();
-
-
-  const racaEscolhida = acharNoCatalogo(catalogo.racas, dados.raca);
 
   /**
    * Escolher a raça preenche tamanho, deslocamento e idiomas, e acrescenta os
@@ -275,16 +282,32 @@ export function FichaForm({
           </Campo>
 
           <Campo rotulo="Idade" className="sm:col-span-1">
-            <Texto valor={dados.idade} aoMudar={(v) => set("idade", v)} />
+            <Texto
+              valor={dados.idade}
+              aoMudar={(v) => set("idade", v)}
+              placeholder={faixas?.idade}
+            />
           </Campo>
           <Campo rotulo="Sexo" className="sm:col-span-1">
-            <Texto valor={dados.sexo} aoMudar={(v) => set("sexo", v)} />
+            <Selecao
+              valor={dados.sexo}
+              aoMudar={(v) => set("sexo", v)}
+              opcoes={SEXOS.map((x) => ({ valor: x, rotulo: x }))}
+            />
           </Campo>
           <Campo rotulo="Altura" className="sm:col-span-1">
-            <Texto valor={dados.altura} aoMudar={(v) => set("altura", v)} />
+            <Texto
+              valor={dados.altura}
+              aoMudar={(v) => set("altura", v)}
+              placeholder={faixas?.altura}
+            />
           </Campo>
           <Campo rotulo="Peso" className="sm:col-span-1">
-            <Texto valor={dados.peso} aoMudar={(v) => set("peso", v)} />
+            <Texto
+              valor={dados.peso}
+              aoMudar={(v) => set("peso", v)}
+              placeholder={faixas?.peso}
+            />
           </Campo>
           <Campo rotulo="Olhos" className="sm:col-span-1">
             <Texto valor={dados.olhos} aoMudar={(v) => set("olhos", v)} />
