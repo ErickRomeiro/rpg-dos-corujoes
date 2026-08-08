@@ -702,6 +702,19 @@ function niveisMagiaVazios(): NivelMagia[] {
   }));
 }
 
+/**
+ * Como chamar o dono de uma ficha no campo "Jogador".
+ *
+ * O e-mail é a reserva porque `name` é opcional no modelo do Auth.js: quem
+ * entra por um provedor que não devolve nome fica sem ele.
+ */
+export function nomeDoJogador(user: {
+  name?: string | null;
+  email?: string | null;
+}): string {
+  return user.name ?? user.email ?? "";
+}
+
 export function dadosVazios(): DadosFicha {
   return {
     jogador: "",

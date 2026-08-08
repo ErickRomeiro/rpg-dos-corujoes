@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { usuarioAtual, podeEditarFicha } from "@/lib/permissoes";
-import { dadosVazios, lerDados, type DadosFicha } from "@/lib/ficha";
+import {
+  dadosVazios,
+  lerDados,
+  nomeDoJogador,
+  type DadosFicha,
+} from "@/lib/ficha";
 
 const SISTEMA = "dnd35";
 const BASE = `/${SISTEMA}/fichas`;
@@ -38,12 +43,18 @@ export async function criarFicha(
   const nome = String(formData.get("nome") ?? "").trim();
   if (!nome) return { erro: "Dê um nome ao personagem." };
 
+  // A ficha é de quem está logado, então "Jogador" já nasce preenchido — é o
+  // único campo da identidade cuja resposta o app conhece de antemão. Continua
+  // editável: mesa em que alguém joga com apelido não fica presa ao nome da
+  // conta.
+  const dados = { ...dadosVazios(), jogador: nomeDoJogador(user) };
+
   const ficha = await prisma.ficha.create({
     data: {
       userId: user.id,
       sistema: SISTEMA,
       nome,
-      dados: dadosVazios() as unknown as Prisma.InputJsonValue,
+      dados: dados as unknown as Prisma.InputJsonValue,
     },
   });
 

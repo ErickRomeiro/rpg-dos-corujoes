@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { usuarioAtual, podeEditarFicha } from "@/lib/permissoes";
-import { lerDados } from "@/lib/ficha";
+import { lerDados, nomeDoJogador } from "@/lib/ficha";
 import { catalogoDaFicha } from "@/lib/catalogo";
 import { FichaForm } from "@/app/dnd35/fichas/_components/ficha-form";
 import { excluirFicha } from "@/app/dnd35/fichas/actions";
@@ -33,6 +33,10 @@ export default async function FichaPage({
   if (!pode) notFound();
 
   const dados = lerDados(ficha.dados);
+  // Ficha criada antes de "Jogador" nascer preenchido continua sem ele. Vale o
+  // dono da ficha, não quem está olhando: mestre abrindo a ficha de um jogador
+  // tem de ver o nome do jogador. Grava de verdade no próximo salvamento.
+  dados.jogador ||= nomeDoJogador(ficha.user);
   const catalogo = await catalogoDaFicha(ficha.membros[0]?.mesaId ?? null);
   const ehMinha = ficha.userId === user.id;
   const podeExcluir = user.role === "OWNER" || ehMinha;
