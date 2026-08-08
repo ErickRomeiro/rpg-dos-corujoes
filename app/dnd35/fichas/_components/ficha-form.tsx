@@ -22,6 +22,10 @@ import { ListaEditavel } from "@/app/dnd35/fichas/_components/lista-editavel";
 import { SecaoPericias } from "@/app/dnd35/fichas/_components/secao-pericias";
 import { bbaProgressivo } from "@/lib/dnd35/classes";
 import type { CatalogoFicha } from "@/lib/catalogo";
+import {
+  DEUSES_POR_CLASSE,
+  DEUSES_POR_RACA,
+} from "@/lib/dnd35/divindades";
 import { acharNoCatalogo } from "@/lib/catalogo-entrada";
 import {
   ALINHAMENTOS,
@@ -87,6 +91,22 @@ export function FichaForm({
   }
 
   // --- Autopreenchimento a partir do catálogo ---
+
+  /**
+   * Divindades sugeridas pelo livro para a raça e as classes já escolhidas
+   * (Tabelas 6-2 e 6-3). É só ordenação de preferência: o livro fecha toda
+   * linha com "ou conforme a classe e a tendência", e clérigo escolhe
+   * livremente. Por isso vira dica, e não filtro da lista.
+   */
+  const dicaDivindade = (() => {
+    const sugeridas = [
+      ...(DEUSES_POR_RACA[dados.racaId] ?? []),
+      ...dados.classes.flatMap((c) => DEUSES_POR_CLASSE[c.classe] ?? []),
+    ];
+    const unicas = [...new Set(sugeridas)];
+    return unicas.length ? `Sugeridas: ${unicas.join(", ")}` : undefined;
+  })();
+
 
   const racaEscolhida = acharNoCatalogo(catalogo.racas, dados.raca);
 
@@ -234,8 +254,17 @@ export function FichaForm({
               opcoes={ALINHAMENTOS.map((a) => ({ valor: a, rotulo: a }))}
             />
           </Campo>
-          <Campo rotulo="Divindade" className="sm:col-span-2">
-            <Texto valor={dados.divindade} aoMudar={(v) => set("divindade", v)} />
+          <Campo rotulo="Divindade" className="sm:col-span-2" dica={dicaDivindade}>
+            <Selecao
+              valor={dados.divindade}
+              aoMudar={(v) => set("divindade", v)}
+              opcoes={catalogo.divindades.map((d) => ({
+                valor: d.nome,
+                rotulo: d.daMesa
+                  ? `${d.nome} (da mesa)`
+                  : `${d.nome} — ${d.dados.titulo}`,
+              }))}
+            />
           </Campo>
           <Campo rotulo="Idiomas" className="sm:col-span-2">
             <Texto

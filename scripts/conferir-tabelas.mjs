@@ -13,6 +13,12 @@
 
 import { TALENTOS } from "../lib/dnd35/talentos.ts";
 import { ARMAS, ARMADURAS } from "../lib/dnd35/equipamento.ts";
+import { DOMINIOS } from "../lib/dnd35/dominios.ts";
+import {
+  DIVINDADES,
+  DIVINDADES_POR_TRANSCREVER,
+} from "../lib/dnd35/divindades.ts";
+import { ALINHAMENTOS } from "../lib/ficha.ts";
 
 const problemas = [];
 const anota = (grupo, o_que, onde) => problemas.push({ grupo, o_que, onde });
@@ -108,6 +114,51 @@ for (const t of TALENTOS) {
   }
 }
 
+// --- 2b. Divindades: domínio, arma predileta e tendência resolvem?
+//
+// E, principalmente, o cruzamento nos dois sentidos com dominios.ts. As duas
+// listas vêm de tabelas diferentes do livro (3-7 e o capítulo de domínios), o
+// que faz uma conferir a outra: se um deus ganha um domínio de um lado e não
+// do outro, foi engano de transcrição, não do livro.
+const DOMINIO_POR = new Set(DOMINIOS.map((d) => norm(d.nome)));
+const porTranscrever = new Set(DIVINDADES_POR_TRANSCREVER.map(norm));
+
+for (const d of DIVINDADES) {
+  if (!ALINHAMENTOS.some((a) => a === d.tendencia))
+    anota("tendência", `"${d.tendencia}"`, d.nome);
+  for (const dom of d.dominios)
+    if (!DOMINIO_POR.has(norm(dom))) anota("domínio", `"${dom}"`, d.nome);
+  for (const arma of d.armaPredileta.split(" ou "))
+    if (!ARMA_POR.has(norm(arma.trim())))
+      anota("arma predileta", `"${arma.trim()}"`, d.nome);
+}
+
+// dominios.ts -> divindades.ts
+for (const dom of DOMINIOS)
+  for (const deus of dom.deuses) {
+    if (porTranscrever.has(norm(deus))) continue;
+    const d = DIVINDADES.find((x) => norm(x.nome) === norm(deus));
+    if (!d) anota("divindade", `"${deus}"`, `domínio ${dom.nome}`);
+    else if (!d.dominios.some((x) => norm(x) === norm(dom.nome)))
+      anota(
+        "cruzamento",
+        `domínio ${dom.nome} lista ${deus}, mas ${deus} não lista ${dom.nome}`,
+        "dominios.ts",
+      );
+  }
+
+// divindades.ts -> dominios.ts
+for (const d of DIVINDADES)
+  for (const nomeDom of d.dominios) {
+    const dom = DOMINIOS.find((x) => norm(x.nome) === norm(nomeDom));
+    if (dom && !dom.deuses.some((x) => norm(x) === norm(d.nome)))
+      anota(
+        "cruzamento",
+        `${d.nome} lista o domínio ${nomeDom}, mas ${nomeDom} não lista ${d.nome}`,
+        "divindades.ts",
+      );
+  }
+
 // --- 3. Nenhum apelido pode ser o nome de outra linha da mesma tabela.
 //
 // Esta é a armadilha que já mordeu duas vezes: "Mãos Leves" era o Dedos
@@ -143,7 +194,8 @@ for (const [rotulo, lista] of [
 }
 
 console.log(
-  `${TALENTOS.length} talentos, ${ARMAS.length} armas, ${ARMADURAS.length} armaduras.`,
+  `${TALENTOS.length} talentos, ${ARMAS.length} armas, ${ARMADURAS.length} armaduras, ` +
+    `${DIVINDADES.length} divindades.`,
 );
 
 if (problemas.length === 0) {

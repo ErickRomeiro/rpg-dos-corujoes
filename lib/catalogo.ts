@@ -11,13 +11,13 @@ import type { Raca } from "@/lib/dnd35/racas";
 import type { Classe } from "@/lib/dnd35/classes";
 import type { ArmaModelo, ArmaduraModelo } from "@/lib/dnd35/equipamento";
 import type { Talento } from "@/lib/dnd35/talentos";
+import type { Divindade } from "@/lib/dnd35/divindades";
 import { acharNoCatalogo, type EntradaCatalogo } from "@/lib/catalogo-entrada";
 
 // Reexportados para quem já os importava daqui; a definição é client-safe.
 export { acharNoCatalogo, type EntradaCatalogo };
 
 const SISTEMA = "dnd35";
-
 
 /**
  * Lista as entradas de um tipo, já resolvendo a precedência do homebrew.
@@ -51,7 +51,9 @@ export async function listarCatalogo<T>(
     if (!existente || entrada.daMesa) porNome.set(item.nome, entrada);
   }
 
-  return [...porNome.values()].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  return [...porNome.values()].sort((a, b) =>
+    a.nome.localeCompare(b.nome, "pt-BR"),
+  );
 }
 
 /**
@@ -125,20 +127,23 @@ export type CatalogoFicha = {
   armas: EntradaCatalogo<ArmaModelo>[];
   armaduras: EntradaCatalogo<ArmaduraModelo>[];
   talentos: EntradaCatalogo<Talento>[];
+  divindades: EntradaCatalogo<Divindade>[];
   itens: EntradaCatalogo<{ nome: string; peso: number }>[];
 };
 
 export async function catalogoDaFicha(
   mesaId?: string | null,
 ): Promise<CatalogoFicha> {
-  const [racas, classes, armas, armaduras, talentos, itens] = await Promise.all([
-    listarCatalogo<Raca>("RACA", mesaId),
-    listarCatalogo<Classe>("CLASSE", mesaId),
-    listarCatalogo<ArmaModelo>("ARMA", mesaId),
-    listarCatalogo<ArmaduraModelo>("ARMADURA", mesaId),
-    listarCatalogo<Talento>("TALENTO", mesaId),
-    listarCatalogo<{ nome: string; peso: number }>("ITEM", mesaId),
-  ]);
+  const [racas, classes, armas, armaduras, talentos, divindades, itens] =
+    await Promise.all([
+      listarCatalogo<Raca>("RACA", mesaId),
+      listarCatalogo<Classe>("CLASSE", mesaId),
+      listarCatalogo<ArmaModelo>("ARMA", mesaId),
+      listarCatalogo<ArmaduraModelo>("ARMADURA", mesaId),
+      listarCatalogo<Talento>("TALENTO", mesaId),
+      listarCatalogo<Divindade>("DIVINDADE", mesaId),
+      listarCatalogo<{ nome: string; peso: number }>("ITEM", mesaId),
+    ]);
 
-  return { racas, classes, armas, armaduras, talentos, itens };
+  return { racas, classes, armas, armaduras, talentos, divindades, itens };
 }

@@ -27,6 +27,7 @@ const { ARMAS, ARMADURAS, ITENS_COMUNS } = await import("../lib/dnd35/equipament
 const { TALENTOS } = await import("../lib/dnd35/talentos.ts");
 const { MAGIAS, ELEMENTOS_WU_JEN } = await import("../lib/dnd35/magias.ts");
 const { DOMINIOS } = await import("../lib/dnd35/dominios.ts");
+const { DIVINDADES } = await import("../lib/dnd35/divindades.ts");
 
 /**
  * Monta as linhas do catálogo a partir das tabelas.
@@ -52,6 +53,7 @@ export function montarLinhas() {
     add("MAGIA", m.nome, elemento ? { ...m, elementoWuJen: elemento } : m, m.livro ?? FONTE);
   }
   for (const d of DOMINIOS) add("DOMINIO", d.nome, d, d.livro ?? FONTE);
+  for (const d of DIVINDADES) add("DIVINDADE", d.nome, d);
   for (const i of ITENS_COMUNS) add("ITEM", i.nome, i);
 
   return linhas;
