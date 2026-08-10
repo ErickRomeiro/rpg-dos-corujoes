@@ -10,6 +10,7 @@ import {
   formatarMod,
   iniciativa,
   lerDados,
+  pvMax,
   reflexos,
   totalPericia,
   vontade,
@@ -32,6 +33,23 @@ function pericia(id: string) {
 
 function totalPassiva(dados: DadosFicha, id: string): number {
   return totalPericia(pericia(id), dados.pericias[id], dados);
+}
+
+/**
+ * PV atual sobre o máximo. O máximo vem sempre de `pvMax()`, e nunca de
+ * `dados.pvMax` — aquele campo é o override manual, que é nulo em quase toda
+ * ficha porque o normal é o valor ser calculado.
+ */
+function Pv({ atual, maximo }: { atual: number | null; maximo: number }) {
+  if (atual == null && maximo <= 0) return <span className="text-muted">—</span>;
+  const efetivo = atual ?? maximo;
+  const ferido = maximo > 0 && efetivo <= maximo / 2;
+  return (
+    <span className={ferido ? "text-red-400" : ""}>
+      {efetivo}
+      <span className="text-muted">/{maximo > 0 ? maximo : "?"}</span>
+    </span>
+  );
 }
 
 export default async function PainelMestrePage({
@@ -129,64 +147,45 @@ export default async function PainelMestrePage({
                   </tr>
                 </thead>
                 <tbody>
-                  {comFicha.map(({ membro, ficha, dados }) => {
-                    const pvAtual = dados.pvAtual;
-                    const pvMax = dados.pvMax;
-                    // Destaque quando o personagem está abaixo de metade dos PV.
-                    const ferido =
-                      pvAtual != null && pvMax != null && pvMax > 0
-                        ? pvAtual <= pvMax / 2
-                        : false;
-
-                    return (
-                      <tr
-                        key={membro.id}
-                        className="border-b border-border/50 last:border-0"
-                      >
-                        <td className="py-2 pr-3">
-                          <Link
-                            href={`/dnd35/fichas/${ficha.id}`}
-                            className="font-medium transition-colors hover:text-accent"
-                          >
-                            {ficha.nome}
-                          </Link>
-                          {dados.classeNivel && (
-                            <span className="block text-xs text-muted">
-                              {[dados.raca, dados.classeNivel]
-                                .filter(Boolean)
-                                .join(" · ")}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-2 pr-3 text-muted">
-                          {membro.user.name ?? membro.user.email}
-                        </td>
-                        <td className="px-2 text-center">
-                          {pvAtual == null && pvMax == null ? (
-                            <span className="text-muted">—</span>
-                          ) : (
-                            <span className={ferido ? "text-red-400" : ""}>
-                              {pvAtual ?? "?"}
-                              <span className="text-muted">/{pvMax ?? "?"}</span>
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-2 text-center">{ca(dados)}</td>
-                        <td className="px-2 text-center">
-                          {formatarMod(iniciativa(dados))}
-                        </td>
-                        {[
-                          fortitude(dados),
-                          reflexos(dados),
-                          vontade(dados),
-                        ].map((valor, i) => (
+                  {comFicha.map(({ membro, ficha, dados }) => (
+                    <tr
+                      key={membro.id}
+                      className="border-b border-border/50 last:border-0"
+                    >
+                      <td className="py-2 pr-3">
+                        <Link
+                          href={`/dnd35/fichas/${ficha.id}`}
+                          className="font-medium transition-colors hover:text-accent"
+                        >
+                          {ficha.nome}
+                        </Link>
+                        {dados.classeNivel && (
+                          <span className="block text-xs text-muted">
+                            {[dados.raca, dados.classeNivel]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3 text-muted">
+                        {membro.user.name ?? membro.user.email}
+                      </td>
+                      <td className="px-2 text-center">
+                        <Pv atual={dados.pvAtual} maximo={pvMax(dados)} />
+                      </td>
+                      <td className="px-2 text-center">{ca(dados)}</td>
+                      <td className="px-2 text-center">
+                        {formatarMod(iniciativa(dados))}
+                      </td>
+                      {[fortitude(dados), reflexos(dados), vontade(dados)].map(
+                        (valor, i) => (
                           <td key={i} className="px-2 text-center">
                             {formatarMod(valor)}
                           </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
+                        ),
+                      )}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
