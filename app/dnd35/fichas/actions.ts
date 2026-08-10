@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -118,6 +119,40 @@ export async function salvarFicha(
   revalidatePath(`${BASE}/${id}`);
   revalidatePath(BASE);
   return { ok: true };
+}
+
+/**
+ * Liga ou desliga o link público de leitura.
+ *
+ * Quem pode compartilhar é só o DONO da ficha (ou o dono do site), e não todo
+ * mundo que pode editar: um mestre corrige o PV de um jogador, mas expor o
+ * personagem dele na internet aberta não é a mesma decisão.
+ *
+ * Revogar apaga o token. Gerar de novo cria outro, então o endereço antigo não
+ * volta a valer — é o que faz a revogação ser de verdade.
+ */
+export async function alternarCompartilhamento(formData: FormData) {
+  const user = await usuarioAtual();
+  const id = String(formData.get("id") ?? "");
+  const ligar = String(formData.get("ligar") ?? "") === "1";
+
+  const ficha = await prisma.ficha.findUnique({
+    where: { id },
+    select: { userId: true },
+  });
+  if (!ficha) return;
+  if (!user || (user.role !== "OWNER" && ficha.userId !== user.id)) return;
+
+  await prisma.ficha.update({
+    where: { id },
+    // 32 hex de crypto.randomUUID: não é adivinhável por tentativa, que é a
+    // única defesa de um link sem login.
+    data: {
+      publicoToken: ligar ? randomUUID().replaceAll("-", "") : null,
+    },
+  });
+
+  revalidatePath(`${BASE}/${id}`);
 }
 
 // Excluir ficha — apenas o dono da ficha ou o dono do site.

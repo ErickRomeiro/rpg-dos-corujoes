@@ -6,8 +6,18 @@
 // dados, conforme as permissões por papel forem detalhadas.
 import { NextResponse, type NextRequest } from "next/server";
 
-// Rotas acessíveis sem login.
-const ROTAS_PUBLICAS = ["/entrar"];
+// "Não exige login" e "não faz sentido para quem já está logado" são coisas
+// diferentes, e por isso são duas listas.
+//
+// /f/[token] é o link público da ficha: dispensa login (primeira lista) mas
+// tem de abrir para todo mundo — inclusive para o próprio dono, que clica no
+// link que acabou de copiar. Se as duas ideias fossem a mesma lista, ele seria
+// mandado para a home ao testar o próprio compartilhamento.
+const SEM_LOGIN = ["/entrar", "/f"];
+const SO_DESLOGADO = ["/entrar"];
+
+const casa = (pathname: string, rotas: string[]) =>
+  rotas.some((rota) => pathname === rota || pathname.startsWith(`${rota}/`));
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -17,19 +27,15 @@ export function proxy(req: NextRequest) {
     req.cookies.has("authjs.session-token") ||
     req.cookies.has("__Secure-authjs.session-token");
 
-  const ehPublica = ROTAS_PUBLICAS.some(
-    (rota) => pathname === rota || pathname.startsWith(`${rota}/`),
-  );
-
   // Não logado tentando acessar área protegida → vai para o login.
-  if (!temSessao && !ehPublica) {
+  if (!temSessao && !casa(pathname, SEM_LOGIN)) {
     const url = new URL("/entrar", req.url);
     if (pathname !== "/") url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
 
   // Já logado tentando acessar a página de login → vai para a home.
-  if (temSessao && ehPublica) {
+  if (temSessao && casa(pathname, SO_DESLOGADO)) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
