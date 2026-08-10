@@ -11,6 +11,7 @@ import {
   nomeDoJogador,
   type DadosFicha,
 } from "@/lib/ficha";
+import { compararFicha } from "@/lib/ficha-historico";
 
 const SISTEMA = "dnd35";
 const BASE = `/${SISTEMA}/fichas`;
@@ -68,11 +69,12 @@ export async function salvarFicha(
   formData: FormData,
 ): Promise<EstadoFicha> {
   const user = await usuarioAtual();
+  if (!user) return { erro: "Faça login." };
   const id = String(formData.get("id") ?? "");
 
   const ficha = await prisma.ficha.findUnique({
     where: { id },
-    select: { userId: true },
+    select: { userId: true, nome: true, dados: true },
   });
   if (!ficha) return { erro: "Ficha não encontrada." };
   if (!(await podeEditarFicha(user, ficha, id))) {
@@ -86,9 +88,31 @@ export async function salvarFicha(
   // é sempre o canônico — e nada que venha do cliente entra sem normalização.
   const dados: DadosFicha = lerDados(jsonForm(formData, "dados"));
 
-  await prisma.ficha.update({
-    where: { id },
-    data: { nome, dados: dados as unknown as Prisma.InputJsonValue },
+  // O antes também passa por `lerDados`: comparar o JSON cru contra o
+  // normalizado acusaria como "mudança" toda diferença de formato que a
+  // normalização conserta, e o histórico da primeira edição de uma ficha
+  // antiga viria cheio de ruído que ninguém digitou.
+  const mudancas = compararFicha(
+    { nome: ficha.nome, dados: lerDados(ficha.dados) },
+    { nome, dados },
+  );
+
+  await prisma.$transaction(async (tx) => {
+    await tx.ficha.update({
+      where: { id },
+      data: { nome, dados: dados as unknown as Prisma.InputJsonValue },
+    });
+    // Salvar sem mexer em nada não vira linha no histórico.
+    if (mudancas.length > 0) {
+      await tx.alteracaoFicha.create({
+        data: {
+          fichaId: id,
+          autorId: user.id,
+          autorNome: nomeDoJogador(user),
+          mudancas: mudancas as unknown as Prisma.InputJsonValue,
+        },
+      });
+    }
   });
 
   revalidatePath(`${BASE}/${id}`);
