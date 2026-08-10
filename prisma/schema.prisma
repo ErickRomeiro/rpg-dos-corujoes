@@ -24,18 +24,19 @@ enum UserRole {
 }
 
 model User {
-  id             String         @id @default(cuid())
+  id             String           @id @default(cuid())
   name           String?
-  email          String?        @unique
+  email          String?          @unique
   emailVerified  DateTime?
   image          String?
-  role           UserRole       @default(USER)
+  role           UserRole         @default(USER)
   accounts       Account[]
   sessions       Session[]
-  mesasCriadas   Mesa[]         @relation("MesasCriadas")
+  mesasCriadas   Mesa[]           @relation("MesasCriadas")
   membrosMesa    MembroMesa[]
   fichas         Ficha[]
-  catalogoCriado ItemCatalogo[] @relation("CatalogoCriado")
+  catalogoCriado ItemCatalogo[]   @relation("CatalogoCriado")
+  alteracoes     AlteracaoFicha[]
 }
 
 model Account {
@@ -155,8 +156,39 @@ model Ficha {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   membros   MembroMesa[]
 
+  /// Token do link público de leitura. Null = não compartilhada.
+  /// Trocar o valor invalida o link antigo; é assim que se revoga.
+  publicoToken String? @unique
+
+  alteracoes AlteracaoFicha[]
+
   @@index([userId])
   @@index([sistema])
+}
+
+/// Uma edição da ficha: quem salvou, quando, e o que mudou.
+///
+/// Guarda a DIFERENÇA, não uma cópia da ficha — ver lib/ficha-historico.ts.
+/// Salvamento que não muda nada não gera linha aqui.
+model AlteracaoFicha {
+  id      String @id @default(cuid())
+  fichaId String
+  ficha   Ficha  @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  /// Quem salvou. Null quando a conta foi apagada — a alteração continua
+  /// existindo, porque apagar o autor não desfaz o que ele fez na ficha.
+  autorId   String?
+  autor     User?   @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  /// Nome do autor no momento da edição, para o histórico continuar legível
+  /// mesmo depois que a conta some.
+  autorNome String
+
+  /// Lista de { campo, de, para }, já em português.
+  mudancas Json
+
+  createdAt DateTime @default(now())
+
+  @@index([fichaId, createdAt])
 }
 
 model MembroMesa {
