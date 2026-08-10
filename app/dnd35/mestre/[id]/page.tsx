@@ -16,6 +16,7 @@ import {
   vontade,
   type DadosFicha,
 } from "@/lib/ficha";
+import { AjustePv } from "@/app/dnd35/mestre/_components/ajuste-pv";
 
 export const metadata: Metadata = { title: "Painel do mestre · D&D 3.5" };
 
@@ -33,23 +34,6 @@ function pericia(id: string) {
 
 function totalPassiva(dados: DadosFicha, id: string): number {
   return totalPericia(pericia(id), dados.pericias[id], dados);
-}
-
-/**
- * PV atual sobre o máximo. O máximo vem sempre de `pvMax()`, e nunca de
- * `dados.pvMax` — aquele campo é o override manual, que é nulo em quase toda
- * ficha porque o normal é o valor ser calculado.
- */
-function Pv({ atual, maximo }: { atual: number | null; maximo: number }) {
-  if (atual == null && maximo <= 0) return <span className="text-muted">—</span>;
-  const efetivo = atual ?? maximo;
-  const ferido = maximo > 0 && efetivo <= maximo / 2;
-  return (
-    <span className={ferido ? "text-red-400" : ""}>
-      {efetivo}
-      <span className="text-muted">/{maximo > 0 ? maximo : "?"}</span>
-    </span>
-  );
 }
 
 export default async function PainelMestrePage({
@@ -171,7 +155,13 @@ export default async function PainelMestrePage({
                         {membro.user.name ?? membro.user.email}
                       </td>
                       <td className="px-2 text-center">
-                        <Pv atual={dados.pvAtual} maximo={pvMax(dados)} />
+                        <AjustePv
+                          fichaId={ficha.id}
+                          mesaId={mesa.id}
+                          nome={ficha.nome}
+                          atual={dados.pvAtual}
+                          maximo={pvMax(dados)}
+                        />
                       </td>
                       <td className="px-2 text-center">{ca(dados)}</td>
                       <td className="px-2 text-center">
@@ -190,7 +180,10 @@ export default async function PainelMestrePage({
               </table>
             </div>
             <p className="mt-3 text-xs text-muted">
-              PV em vermelho = personagem na metade ou menos dos pontos de vida.
+              Vermelho = na metade ou menos dos pontos de vida. Abaixo de zero o
+              personagem está morrendo, e em −10 está morto. O − aplica dano e o
+              + cura, direto na ficha do jogador — cura não passa do máximo, e
+              nada disso entra no histórico de alterações.
             </p>
           </section>
 
