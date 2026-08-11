@@ -46,6 +46,7 @@ import {
   corPorNome,
   type OpcaoCor,
 } from "@/lib/dnd35/aparencia";
+import { CartaFicha } from "@/app/dnd35/fichas/_components/carta-ficha";
 import { classePor } from "@/lib/dnd35/classes";
 
 const vazio = (v: unknown) =>
@@ -208,6 +209,15 @@ export function FichaLeitura({
 
   return (
     <article className="space-y-6 print:space-y-4 print:text-black">
+      {/* A carta abre a leitura, como capa do que vem abaixo.
+          `print:hidden` porque a impressão já tem um trabalho definido — sair
+          fiel à ficha, para conferir na mesa — e a carta acrescentaria uma
+          página repetindo números que a folha já traz. Quem quer a carta no
+          papel imprime pela rota dela, que tem botão próprio. */}
+      <div className="print:hidden">
+        <CartaFicha nome={nome} dados={dados} />
+      </div>
+
       <header className="flex items-start gap-4">
         {!vazio(dados.retrato) && (
           // eslint-disable-next-line @next/next/no-img-element

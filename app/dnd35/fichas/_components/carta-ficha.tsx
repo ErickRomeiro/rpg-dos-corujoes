@@ -192,11 +192,15 @@ export function CartaFicha({
             Sem retrato. Envie um na edição da ficha.
           </div>
         ) : (
+          // `object-top` e não o centro padrão: arte de personagem costuma ser
+          // de corpo inteiro e mais alta que a moldura, e centralizar o recorte
+          // corta justamente a cabeça — sobra o tronco. Ancorando no topo, o
+          // rosto sempre aparece, que é o que identifica o personagem.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={dados.retrato}
             alt={`Retrato de ${nome}`}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover object-top"
           />
         )}
 
