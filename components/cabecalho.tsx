@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { secoesDnd35 } from "@/lib/navegacao";
 import { UsuarioNav } from "@/components/usuario-nav";
+import { Coruja } from "@/components/coruja";
 
 export function Cabecalho() {
   const pathname = usePathname();
@@ -19,9 +20,7 @@ export function Cabecalho() {
           href="/"
           className="flex items-center gap-2 text-lg font-semibold tracking-tight"
         >
-          <span aria-hidden className="text-2xl">
-            🦉
-          </span>
+          <Coruja className="h-7 w-7 shrink-0 text-accent" />
           <span>
             RPG dos <span className="text-accent">Corujões</span>
           </span>

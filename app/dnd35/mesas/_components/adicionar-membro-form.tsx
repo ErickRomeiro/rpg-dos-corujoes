@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { adicionarMembro, type EstadoForm } from "@/app/dnd35/mesas/actions";
+import { Coruja } from "@/components/coruja";
 
 type UsuarioBusca = {
   id: string;
@@ -196,8 +197,8 @@ export function AdicionarMembroForm({ mesaId }: { mesaId: string }) {
                           className="h-6 w-6 rounded-full border border-border"
                         />
                       ) : (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface text-xs">
-                          🦉
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface">
+                          <Coruja className="h-3.5 w-3.5 text-muted" />
                         </span>
                       )}
                       <span className="min-w-0">

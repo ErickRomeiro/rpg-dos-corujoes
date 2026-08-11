@@ -1,7 +1,23 @@
 @import "tailwindcss";
 
-/* Tema "RPG dos Corujões": fantasia sombria, com acento âmbar/ouro
-   (pergaminho + penas de coruja) sobre um fundo ardósia escuro. */
+/* Tema "RPG dos Corujões": fantasia sombria, com acento violeta (arcano)
+   sobre um fundo ardósia escuro.
+
+   O acento tem de servir a dois usos opostos: como texto sobre o fundo
+   (`text-accent`) e como fundo com texto escuro por cima (`bg-accent
+   text-background`). É o mesmo par de cores nos dois casos, então uma razão de
+   contraste cobre ambos.
+
+   CUIDADO ao mexer: como o fundo é quase preto, escurecer o acento REDUZ o
+   contraste. A saturação já está no teto (~92%), então o único controle real é
+   a claridade, e ela anda contra a legibilidade. Aqui o acento está em 7.1:1
+   (AAA) e o de hover em 4.5:1 — este é o ponto mais apertado do tema, logo
+   acima do mínimo AA. Um passo a mais de escuro (violet-600, #7c3aed) cai para
+   3.4:1 e reprova.
+
+   Âmbar/ouro continua reservado para AVISO (as caixas "jogador sem ficha", em
+   amber-*). Enquanto a marca era âmbar os dois se confundiam; com o acento
+   frio, o aviso volta a se destacar sozinho. */
 :root {
   --background: #0b0f14;
   --surface: #131a23;
@@ -9,8 +25,8 @@
   --border: #2a3744;
   --foreground: #e8eaed;
   --muted: #9aa6b2;
-  --accent: #f0b429;
-  --accent-strong: #d99411;
+  --accent: #a78bfa;
+  --accent-strong: #8b5cf6;
 }
 
 @theme inline {

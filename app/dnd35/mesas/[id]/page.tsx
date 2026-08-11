@@ -9,6 +9,7 @@ import {
   excluirMesa,
 } from "@/app/dnd35/mesas/actions";
 import { AdicionarMembroForm } from "@/app/dnd35/mesas/_components/adicionar-membro-form";
+import { Coruja } from "@/components/coruja";
 
 export const metadata: Metadata = { title: "Mesa · D&D 3.5" };
 
@@ -112,8 +113,8 @@ export default async function MesaDetalhePage({
                       className="h-9 w-9 rounded-full border border-border"
                     />
                   ) : (
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-sm">
-                      🦉
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2">
+                      <Coruja className="h-5 w-5 text-muted" />
                     </span>
                   )}
 

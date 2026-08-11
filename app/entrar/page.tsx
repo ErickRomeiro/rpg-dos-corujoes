@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { Coruja } from "@/components/coruja";
 
 function BotaoEntrar() {
   const params = useSearchParams();
@@ -24,9 +25,7 @@ function BotaoEntrar() {
 export default function EntrarPage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-24 text-center sm:px-6">
-      <span aria-hidden className="text-6xl">
-        🦉
-      </span>
+      <Coruja className="h-20 w-20 text-accent" />
       <h1 className="mt-6 text-3xl font-bold tracking-tight">
         RPG dos <span className="text-accent">Corujões</span>
       </h1>

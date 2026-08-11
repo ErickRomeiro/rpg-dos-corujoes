@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { rpgs } from "@/lib/data/rpgs";
+import { Coruja } from "@/components/coruja";
 
 export default function Home() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
       {/* Hero */}
       <section className="py-16 text-center sm:py-24">
-        <span aria-hidden className="text-6xl">
-          🦉
-        </span>
+        <Coruja className="mx-auto h-20 w-20 text-accent" />
         <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl">
           RPG dos <span className="text-accent">Corujões</span>
         </h1>

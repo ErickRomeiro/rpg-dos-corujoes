@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
+import { Coruja } from "@/components/coruja";
 
 // Área do usuário no cabeçalho: botão de login (Google) quando deslogado,
 // avatar/nome + sair quando logado.
@@ -39,9 +40,11 @@ export function UsuarioNav() {
       ) : (
         <span
           aria-hidden
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-sm"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2"
         >
-          🦉
+          {/* Espaço de avatar, não marca: fica no tom neutro para o usuário
+              sem foto não virar logotipo. */}
+          <Coruja className="h-5 w-5 text-muted" />
         </span>
       )}
       <span className="hidden text-sm font-medium sm:inline">
