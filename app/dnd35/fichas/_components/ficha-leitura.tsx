@@ -208,16 +208,22 @@ export function FichaLeitura({
   });
 
   return (
-    <article className="space-y-6 print:space-y-4 print:text-black">
-      {/* A carta abre a leitura, como capa do que vem abaixo.
-          `print:hidden` porque a impressão já tem um trabalho definido — sair
-          fiel à ficha, para conferir na mesa — e a carta acrescentaria uma
-          página repetindo números que a folha já traz. Quem quer a carta no
-          papel imprime pela rota dela, que tem botão próprio. */}
-      <div className="print:hidden">
-        <CartaFicha nome={nome} dados={dados} />
-      </div>
+    <article className="print:text-black">
+      {/* Carta ao lado das tabelas, e não acima delas: empilhada, ela empurrava
+          a ficha inteira para baixo da dobra. Só a partir de `lg` — abaixo
+          disso não há largura para duas colunas e ela volta a abrir a página.
 
+          `lg:sticky` mantém a carta à vista enquanto se rola perícias e magias,
+          que é a parte longa da folha.
+
+          `print:block` desfaz a coluna no papel: a impressão volta a ser uma
+          coisa só, sem a carta (que é `print:hidden`). */}
+      <div className="lg:flex lg:items-start lg:gap-6 print:block">
+        <div className="mb-6 print:hidden lg:mb-0 lg:sticky lg:top-20 lg:w-80 lg:flex-none">
+          <CartaFicha nome={nome} dados={dados} />
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-6 print:space-y-4">
       <header className="flex items-start gap-4">
         {!vazio(dados.retrato) && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -442,6 +448,8 @@ export function FichaLeitura({
           />
         </Bloco>
       )}
+        </div>
+      </div>
     </article>
   );
 }

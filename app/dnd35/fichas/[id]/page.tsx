@@ -69,7 +69,7 @@ export default async function FichaPage({
   }));
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 print:max-w-none print:px-0 print:py-0">
+    <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:max-w-6xl print:max-w-none print:px-0 print:py-0">
       {/* Nada de navegação e botão no papel. */}
       <div className="print:hidden">
         <Link

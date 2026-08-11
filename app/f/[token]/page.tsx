@@ -65,7 +65,7 @@ export default async function FichaPublicaPage({
   dados.jogador ||= ficha.user.name ?? "";
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 print:max-w-none print:px-0 print:py-0">
+    <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:max-w-6xl print:max-w-none print:px-0 print:py-0">
       <div className="print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-muted">
