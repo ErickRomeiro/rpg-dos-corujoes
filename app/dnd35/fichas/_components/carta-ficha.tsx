@@ -185,73 +185,76 @@ export function CartaFicha({
         </div>
       </header>
 
-      {/* Arte, com os chips de combate por cima */}
-      <div className="relative aspect-[4/5] bg-surface-2">
+      {/* A arte é o FUNDO desta faixa, e o texto vem por cima da parte de
+          baixo dela — é o que dá à referência a cara de carta, em vez de
+          "imagem seguida de dados". Por isso a proporção é generosa: precisa
+          caber a figura e ainda sobrar área para o painel repousar. */}
+      <div className="relative aspect-[3/4] bg-surface-2">
         {vazio(dados.retrato) ? (
           <div className="flex h-full w-full items-center justify-center px-6 text-center text-xs text-muted">
             Sem retrato. Envie um na edição da ficha.
           </div>
         ) : (
-          // `object-top` e não o centro padrão: arte de personagem costuma ser
-          // de corpo inteiro e mais alta que a moldura, e centralizar o recorte
-          // corta justamente a cabeça — sobra o tronco. Ancorando no topo, o
-          // rosto sempre aparece, que é o que identifica o personagem.
+          // O enquadramento vem da ficha: centro por padrão, ajustável por
+          // quem edita. Ver `retratoPos` em lib/ficha.ts.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={dados.retrato}
             alt={`Retrato de ${nome}`}
-            className="h-full w-full object-cover object-top"
+            className="h-full w-full object-cover"
+            style={{ objectPosition: `50% ${dados.retratoPos}%` }}
           />
         )}
 
+        {/* Chips de combate na lateral, como na referência */}
         <div className="absolute left-2 top-2 flex flex-col items-start gap-1.5">
           {combate.map((c) => (
             <Chip key={c.rotulo} {...c} />
           ))}
         </div>
-      </div>
 
-      {/* Etiquetas e texto */}
-      <div className="space-y-3 p-4">
-        {etiquetas.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {etiquetas.map((e) => (
-              <span
-                key={e}
-                className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-medium"
-              >
-                {e}
+        {/* O painel de texto, repousando sobre o rodapé da arte */}
+        <div className="absolute inset-x-2 bottom-2 space-y-2 rounded-xl bg-background/85 p-3 backdrop-blur-sm">
+          {etiquetas.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {etiquetas.map((e) => (
+                <span
+                  key={e}
+                  className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-medium"
+                >
+                  {e}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            {(
+              [
+                ["Fortitude", fortitude(dados)],
+                ["Reflexos", reflexos(dados)],
+                ["Vontade", vontade(dados)],
+              ] as const
+            ).map(([r, v]) => (
+              <span key={r}>
+                <span className="text-muted">{r}</span>{" "}
+                <span className="font-semibold tabular-nums">
+                  {formatarMod(v)}
+                </span>
               </span>
             ))}
           </div>
-        )}
 
-        <div className="flex gap-4 text-xs">
-          {(
-            [
-              ["Fortitude", fortitude(dados)],
-              ["Reflexos", reflexos(dados)],
-              ["Vontade", vontade(dados)],
-            ] as const
-          ).map(([r, v]) => (
-            <span key={r}>
-              <span className="text-muted">{r}</span>{" "}
-              <span className="font-semibold tabular-nums">
-                {formatarMod(v)}
-              </span>
-            </span>
-          ))}
+          <Bloco titulo="Talentos" itens={dados.talentos} />
+          <Bloco titulo="Habilidades" itens={dados.habilidades} />
+
+          {!vazio(dados.tamanho) && (
+            <p className="text-[11px] text-muted">
+              Tamanho {tamanhoPor(dados.tamanho).nome}
+              {!vazio(dados.deslocamento) && ` · ${dados.deslocamento}`}
+            </p>
+          )}
         </div>
-
-        <Bloco titulo="Talentos" itens={dados.talentos} />
-        <Bloco titulo="Habilidades" itens={dados.habilidades} />
-
-        {!vazio(dados.tamanho) && (
-          <p className="text-[11px] text-muted">
-            Tamanho {tamanhoPor(dados.tamanho).nome}
-            {!vazio(dados.deslocamento) && ` · ${dados.deslocamento}`}
-          </p>
-        )}
       </div>
 
       {/* Faixa de baixo: os chips de resumo e a legenda de todos eles */}

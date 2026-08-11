@@ -13,6 +13,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import {
+  ajustarRetrato,
   enviarRetrato,
   removerRetrato,
   type EstadoFicha,
@@ -21,12 +22,19 @@ import {
 export function RetratoFicha({
   fichaId,
   retrato,
+  retratoPos,
   nome,
 }: {
   fichaId: string;
   retrato: string;
+  retratoPos: number;
   nome: string;
 }) {
+  // A posição vive em estado local para a prévia acompanhar o dedo. O
+  // salvamento só acontece ao SOLTAR o controle — salvar a cada pixel
+  // arrastado renderia dezenas de gravações para um ajuste só.
+  const [pos, setPos] = useState(retratoPos);
+  const formPos = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState<EstadoFicha, FormData>(
     enviarRetrato,
     undefined,
@@ -36,20 +44,53 @@ export function RetratoFicha({
 
   return (
     <div className="flex flex-wrap items-start gap-4">
-      <div className="h-28 w-28 flex-none overflow-hidden rounded-lg border border-border bg-background">
-        {retrato ? (
-          // <img> e não next/image, como já é feito com os avatares do Google:
-          // o arquivo vem de host externo e não precisa do otimizador.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={retrato}
-            alt={`Retrato de ${nome}`}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-center text-[11px] text-muted">
-            sem retrato
-          </div>
+      {/* A prévia usa a MESMA proporção e o mesmo recorte da carta, senão o
+          ajuste seria feito contra um enquadramento que não é o real. */}
+      <div className="w-28 flex-none">
+        <div className="aspect-[3/4] overflow-hidden rounded-lg border border-border bg-background">
+          {retrato ? (
+            // <img> e não next/image, como já é feito com os avatares do
+            // Google: o arquivo vem de host externo e não precisa do otimizador.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={retrato}
+              alt={`Retrato de ${nome}`}
+              className="h-full w-full object-cover"
+              style={{ objectPosition: `50% ${pos}%` }}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-center text-[11px] text-muted">
+              sem retrato
+            </div>
+          )}
+        </div>
+
+        {retrato && (
+          <form ref={formPos} action={ajustarRetrato} className="mt-2">
+            <input type="hidden" name="id" value={fichaId} />
+            <label className="block text-[10px] font-medium text-muted">
+              Enquadramento
+            </label>
+            {/* O `name` vive no próprio controle, e não num campo escondido
+                espelhando o estado: espelhar criava uma corrida — o envio
+                dispara no soltar e lia o campo antes de o React ter gravado o
+                valor novo nele, mandando o anterior. Aqui o que se envia é
+                sempre o que está no controle. */}
+            <input
+              type="range"
+              name="posicao"
+              min={0}
+              max={100}
+              value={pos}
+              onChange={(e) => setPos(Number(e.target.value))}
+              // Grava só ao soltar: a cada pixel arrastado seriam dezenas de
+              // gravações para um ajuste só.
+              onPointerUp={() => formPos.current?.requestSubmit()}
+              onKeyUp={() => formPos.current?.requestSubmit()}
+              aria-label="Enquadramento vertical do retrato"
+              className="w-full accent-accent"
+            />
+          </form>
         )}
       </div>
 

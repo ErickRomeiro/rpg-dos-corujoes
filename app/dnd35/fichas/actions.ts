@@ -310,3 +310,39 @@ export async function removerRetrato(formData: FormData) {
   revalidatePath(`${BASE}/${id}`);
   revalidatePath(BASE);
 }
+
+/**
+ * Guarda o enquadramento vertical do retrato (0 = topo, 100 = base).
+ *
+ * É ação própria, e não parte do "Salvar ficha", pelo mesmo motivo do envio: a
+ * pessoa está olhando a imagem e ajustando até ficar bom, e ter de lembrar de
+ * salvar depois quebraria esse laço.
+ */
+export async function ajustarRetrato(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const user = await usuarioAtual();
+
+  const ficha = await prisma.ficha.findUnique({
+    where: { id },
+    select: { userId: true, dados: true },
+  });
+  if (!ficha) return;
+  if (!(await podeEditarFicha(user, ficha, id))) return;
+
+  // Vem de um controle deslizante, mas a action é rota própria e pode receber
+  // qualquer coisa — a faixa é imposta aqui, não confiada ao formulário.
+  const bruto = Number(formData.get("posicao"));
+  const posicao = Number.isFinite(bruto)
+    ? Math.min(100, Math.max(0, Math.round(bruto)))
+    : 50;
+
+  const dados = lerDados(ficha.dados);
+  await prisma.ficha.update({
+    where: { id },
+    data: {
+      dados: { ...dados, retratoPos: posicao } as unknown as Prisma.InputJsonValue,
+    },
+  });
+
+  revalidatePath(`${BASE}/${id}`);
+}

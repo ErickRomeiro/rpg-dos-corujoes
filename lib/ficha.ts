@@ -251,6 +251,16 @@ export type DadosFicha = {
    * toda tela que a mostra, e embutir a imagem aqui pesaria todas elas.
    */
   retrato: string;
+  /**
+   * Enquadramento vertical do retrato, de 0 (topo) a 100 (base). 50 = centro.
+   *
+   * Existe porque arte de personagem costuma ser de corpo inteiro e mais alta
+   * que a moldura, e aí o recorte decide o que se vê. Centralizar acerta na
+   * maioria dos casos, mas não em todos — e adivinhar onde está o personagem
+   * exigiria detecção de imagem, que não é confiável. Então o padrão é o
+   * centro e quem quiser reenquadra.
+   */
+  retratoPos: number;
   xpAtual: number | null;
   xpProximo: number | null;
 
@@ -782,6 +792,7 @@ export function dadosVazios(): DadosFicha {
     cabelo: "",
     pele: "",
     retrato: "",
+    retratoPos: 50,
     xpAtual: null,
     xpProximo: null,
     atributos: atributosVazios(),
@@ -945,6 +956,8 @@ export function lerDados(json: unknown): DadosFicha {
     cabelo: str(j.cabelo),
     pele: str(j.pele),
     retrato: str(j.retrato),
+    // Fora da faixa ou ausente volta ao centro, que é o padrão seguro.
+    retratoPos: Math.min(100, Math.max(0, num(j.retratoPos) ?? 50)),
     // `xp` é o nome usado na versão anterior do projeto.
     xpAtual: num(j.xpAtual) ?? num(j.xp),
     xpProximo: num(j.xpProximo),
