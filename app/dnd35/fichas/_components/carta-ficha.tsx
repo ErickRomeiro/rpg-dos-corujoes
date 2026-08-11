@@ -229,12 +229,22 @@ export function CartaFicha({
               aria-hidden
               className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl"
             />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={dados.retrato}
-              alt={`Retrato de ${nome}`}
-              className="relative h-full w-full object-contain"
-            />
+            {/* A figura é contida no espaço ACIMA do painel, e não na moldura
+                inteira. Contida na moldura toda, ela ficava centralizada e o
+                terço de baixo — pernas e pés — sumia atrás do painel: a carta
+                dizia mostrar o personagem inteiro e escondia parte dele.
+
+                O fundo borrado continua ocupando a moldura toda, então a
+                sobreposição do painel segue parecendo intencional, como na
+                referência. */}
+            <div className="absolute inset-x-0 top-0 bottom-[32%]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={dados.retrato}
+                alt={`Retrato de ${nome}`}
+                className="h-full w-full object-contain"
+              />
+            </div>
           </>
         )}
 
