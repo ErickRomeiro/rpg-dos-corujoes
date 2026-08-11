@@ -12,6 +12,7 @@ import { usuarioAtual, podeEditarFicha } from "@/lib/permissoes";
 import { lerDados, nomeDoJogador } from "@/lib/ficha";
 import { catalogoDaFicha } from "@/lib/catalogo";
 import { FichaForm } from "@/app/dnd35/fichas/_components/ficha-form";
+import { RetratoFicha } from "@/app/dnd35/fichas/_components/retrato-ficha";
 
 export const metadata: Metadata = { title: "Editar ficha · D&D 3.5" };
 
@@ -62,6 +63,19 @@ export default async function EditarFichaPage({
             : `Editando o personagem de ${ficha.user.name ?? ficha.user.email}`}
         </p>
       </header>
+
+      {/* Antes do formulário: o retrato tem envio próprio e imediato, e não
+          entra no "Salvar ficha" — ver o comentário em retrato-ficha.tsx. */}
+      <section className="mb-6 rounded-xl border border-border bg-surface p-5">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted">
+          Retrato
+        </h2>
+        <RetratoFicha
+          fichaId={ficha.id}
+          retrato={dados.retrato}
+          nome={ficha.nome}
+        />
+      </section>
 
       <FichaForm
         id={ficha.id}

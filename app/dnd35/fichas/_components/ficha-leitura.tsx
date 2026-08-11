@@ -208,14 +208,24 @@ export function FichaLeitura({
 
   return (
     <article className="space-y-6 print:space-y-4 print:text-black">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{nome}</h1>
-        <p className="text-sm text-muted">
-          {[classes || dados.classeNivel, dados.raca, dados.alinhamento]
-            .filter((x) => !vazio(x))
-            .join(" · ")}
-          {nivel > 0 && ` · nível ${nivel}`}
-        </p>
+      <header className="flex items-start gap-4">
+        {!vazio(dados.retrato) && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={dados.retrato}
+            alt={`Retrato de ${nome}`}
+            className="h-20 w-20 flex-none rounded-lg border border-border object-cover print:border-black/30"
+          />
+        )}
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight">{nome}</h1>
+          <p className="text-sm text-muted">
+            {[classes || dados.classeNivel, dados.raca, dados.alinhamento]
+              .filter((x) => !vazio(x))
+              .join(" · ")}
+            {nivel > 0 && ` · nível ${nivel}`}
+          </p>
+        </div>
       </header>
 
       <Bloco titulo="Identidade">

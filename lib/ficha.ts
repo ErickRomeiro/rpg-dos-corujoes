@@ -245,6 +245,12 @@ export type DadosFicha = {
   olhos: string;
   cabelo: string;
   pele: string;
+  /**
+   * URL do retrato do personagem, no armazenamento de arquivos. Vazio = sem
+   * retrato. Guarda o endereço, e não a imagem: JSON de ficha é lido inteiro em
+   * toda tela que a mostra, e embutir a imagem aqui pesaria todas elas.
+   */
+  retrato: string;
   xpAtual: number | null;
   xpProximo: number | null;
 
@@ -775,6 +781,7 @@ export function dadosVazios(): DadosFicha {
     olhos: "",
     cabelo: "",
     pele: "",
+    retrato: "",
     xpAtual: null,
     xpProximo: null,
     atributos: atributosVazios(),
@@ -937,6 +944,7 @@ export function lerDados(json: unknown): DadosFicha {
     olhos: str(j.olhos),
     cabelo: str(j.cabelo),
     pele: str(j.pele),
+    retrato: str(j.retrato),
     // `xp` é o nome usado na versão anterior do projeto.
     xpAtual: num(j.xpAtual) ?? num(j.xp),
     xpProximo: num(j.xpProximo),

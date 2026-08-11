@@ -170,3 +170,143 @@ export async function excluirFicha(formData: FormData) {
   revalidatePath(BASE);
   redirect(BASE);
 }
+
+/**
+ * Retrato do personagem: envio, troca e remoção.
+ *
+ * O arquivo vai para o Vercel Blob e a ficha guarda só a URL. Não dá para
+ * gravar em disco: em produção o sistema de arquivos é descartável, e o que
+ * fosse salvo sumiria no próximo deploy.
+ *
+ * O que é validado aqui, e por quê:
+ *
+ *  - **Quem envia** — `podeEditarFicha`, a mesma regra do salvamento. Sem isso,
+ *    qualquer pessoa logada poria imagem na ficha de qualquer outra.
+ *  - **Tamanho** — teto de 4 MB. Retrato não precisa de mais, e sem teto uma
+ *    conta enche o armazenamento sozinha.
+ *  - **Tipo** — só imagem, e conferido pelo CONTEÚDO do arquivo (os primeiros
+ *    bytes), não pelo nome nem pelo `type` que o navegador declara: os dois são
+ *    escolhidos por quem envia e não provam nada.
+ *
+ * `addRandomSuffix` evita que dois envios com o mesmo nome se sobrescrevam, e
+ * também impede adivinhar a URL do retrato de outra ficha a partir do id dela.
+ */
+
+const RETRATO_MAX_BYTES = 4 * 1024 * 1024;
+
+/** Assinaturas de arquivo das imagens que aceitamos. */
+const ASSINATURAS: { tipo: string; bytes: number[] }[] = [
+  { tipo: "image/jpeg", bytes: [0xff, 0xd8, 0xff] },
+  { tipo: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47] },
+  { tipo: "image/gif", bytes: [0x47, 0x49, 0x46, 0x38] },
+  // WEBP é "RIFF....WEBP": os 4 primeiros bytes bastam para separar do resto.
+  { tipo: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46] },
+];
+
+function tipoRealDaImagem(inicio: Uint8Array): string | null {
+  for (const { tipo, bytes } of ASSINATURAS) {
+    if (bytes.every((b, i) => inicio[i] === b)) return tipo;
+  }
+  return null;
+}
+
+export async function enviarRetrato(
+  _prev: EstadoFicha,
+  formData: FormData,
+): Promise<EstadoFicha> {
+  const id = String(formData.get("id") ?? "");
+  const user = await usuarioAtual();
+
+  const ficha = await prisma.ficha.findUnique({
+    where: { id },
+    select: { userId: true, dados: true },
+  });
+  if (!ficha) return { erro: "Ficha não encontrada." };
+  if (!(await podeEditarFicha(user, ficha, id))) {
+    return { erro: "Você não pode editar esta ficha." };
+  }
+
+  const arquivo = formData.get("arquivo");
+  if (!(arquivo instanceof File) || arquivo.size === 0) {
+    return { erro: "Escolha uma imagem." };
+  }
+  if (arquivo.size > RETRATO_MAX_BYTES) {
+    return { erro: "A imagem passa de 4 MB. Envie uma menor." };
+  }
+
+  const conteudo = new Uint8Array(await arquivo.arrayBuffer());
+  const tipo = tipoRealDaImagem(conteudo.subarray(0, 8));
+  if (!tipo) {
+    return { erro: "Arquivo não é uma imagem (aceito JPEG, PNG, GIF ou WEBP)." };
+  }
+
+  const dados = lerDados(ficha.dados);
+  const anterior = dados.retrato;
+
+  const { put, del } = await import("@vercel/blob");
+
+  let url: string;
+  try {
+    const enviado = await put(`retratos/${id}`, Buffer.from(conteudo), {
+      access: "public",
+      contentType: tipo,
+      addRandomSuffix: true,
+    });
+    url = enviado.url;
+  } catch {
+    // Falta de token é o caso comum aqui, e o erro cru do SDK não diz isso.
+    return {
+      erro:
+        "Não consegui guardar a imagem. Confira se o armazenamento (BLOB_READ_WRITE_TOKEN) está configurado.",
+    };
+  }
+
+  await prisma.ficha.update({
+    where: { id },
+    data: {
+      dados: { ...dados, retrato: url } as unknown as Prisma.InputJsonValue,
+    },
+  });
+
+  // O retrato antigo já não é alcançável pela ficha; apagá-lo evita acumular
+  // arquivo órfão pago. Se falhar, o envio novo continua valendo.
+  if (anterior) {
+    try {
+      await del(anterior);
+    } catch {}
+  }
+
+  revalidatePath(`${BASE}/${id}`);
+  revalidatePath(BASE);
+  return { ok: true };
+}
+
+export async function removerRetrato(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const user = await usuarioAtual();
+
+  const ficha = await prisma.ficha.findUnique({
+    where: { id },
+    select: { userId: true, dados: true },
+  });
+  if (!ficha) return;
+  if (!(await podeEditarFicha(user, ficha, id))) return;
+
+  const dados = lerDados(ficha.dados);
+  if (!dados.retrato) return;
+
+  await prisma.ficha.update({
+    where: { id },
+    data: {
+      dados: { ...dados, retrato: "" } as unknown as Prisma.InputJsonValue,
+    },
+  });
+
+  try {
+    const { del } = await import("@vercel/blob");
+    await del(dados.retrato);
+  } catch {}
+
+  revalidatePath(`${BASE}/${id}`);
+  revalidatePath(BASE);
+}
