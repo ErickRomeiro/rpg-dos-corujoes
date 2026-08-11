@@ -57,6 +57,25 @@ export async function listarCatalogo<T>(
 }
 
 /**
+ * Deixa o termo do usuário ser só texto dentro de um LIKE.
+ *
+ * Sem isto, quem digita "%" casa com o catálogo inteiro e quem digita "_" casa
+ * com qualquer letra naquela posição — o filtro passa a mentir em silêncio. A
+ * barra invertida vem primeiro, senão escaparíamos as barras que acabamos de
+ * introduzir.
+ */
+const escaparLike = (termo: string) => termo.replace(/[\\%_]/g, "\\$&");
+
+/** O que a consulta bruta devolve, antes de virar `EntradaCatalogo`. */
+type LinhaCatalogo = {
+  id: string;
+  nome: string;
+  fonte: string;
+  mesaId: string | null;
+  dados: unknown;
+};
+
+/**
  * Busca por nome, para autocompletes de conjuntos grandes (magias).
  *
  * Procura no nome em português e também no `nomeOriginal` em inglês guardado
@@ -71,6 +90,20 @@ export async function listarCatalogo<T>(
  * Nem todo tipo do catálogo tem `nomeOriginal` — armas e armaduras, por
  * exemplo, não têm — e a maioria dos itens não tem apelido nenhum. Para esses
  * os filtros simplesmente não casam, o que não atrapalha: são todos OR.
+ *
+ * ACENTO: é SQL escrito à mão porque o `mode: "insensitive"` do Prisma resolve
+ * maiúscula, não acento — "agua" não achava "Água" e "nevoa" não achava
+ * "Névoa". Em português isso reprova a busca inteira, ainda mais no celular,
+ * onde metade da mesa lê e quase ninguém acentua. `unaccent()` compara os dois
+ * lados sem acento; o `ILIKE` continua cuidando da caixa.
+ *
+ * Custo: `unaccent()` é STABLE, então não entra em índice e a varredura é
+ * sequencial. Com ~1.100 linhas no catálogo isso é irrelevante — se um dia
+ * crescer a ponto de doer, o caminho é uma coluna normalizada e indexada, não
+ * voltar a errar o acento.
+ *
+ * A extensão `unaccent` é criada por `npm run db:push` (ver
+ * `scripts/preparar-busca.mjs`); sem ela esta consulta falha na hora.
  */
 export async function buscarCatalogo<T>(
   tipo: TipoCatalogo,
@@ -78,38 +111,41 @@ export async function buscarCatalogo<T>(
   mesaId?: string | null,
   limite = 20,
 ): Promise<EntradaCatalogo<T>[]> {
-  const itens = await prisma.itemCatalogo.findMany({
-    where: {
-      sistema: SISTEMA,
-      tipo,
-      // Os dois OR precisam ser irmãos dentro de um AND: um decide de quem é o
-      // conteúdo, o outro onde o termo casa. Deixá-los no mesmo nível faria o
-      // segundo sobrescrever o primeiro e vazar homebrew de outras mesas.
-      AND: [
-        { OR: [{ mesaId: null }, ...(mesaId ? [{ mesaId }] : [])] },
-        {
-          OR: [
-            { nome: { contains: termo, mode: "insensitive" } },
-            {
-              dados: {
-                path: ["nomeOriginal"],
-                string_contains: termo,
-                mode: "insensitive",
-              },
-            },
-            // Nome antigo do item, para quem digita o que a ficha gravou antes
-            // de uma renomeação. Aqui a comparação é exata, e não por trecho:
-            // apelido serve para reencontrar um nome inteiro que existiu, não
-            // para alargar a busca.
-            { dados: { path: ["apelidos"], array_contains: termo } },
-          ],
-        },
-      ],
-    },
-    select: { id: true, nome: true, fonte: true, mesaId: true, dados: true },
-    orderBy: { nome: "asc" },
-    take: limite,
-  });
+  const alvo = escaparLike(termo);
+  const trecho = `%${alvo}%`;
+
+  // As duas condições precisam ficar em parênteses irmãos: uma decide de quem
+  // é o conteúdo, a outra onde o termo casa. Fundi-las num OR só faria a
+  // segunda anular a primeira e vazar homebrew de outras mesas.
+  //
+  // `"mesaId" = NULL` nunca é verdade, então o mesmo texto serve para quem
+  // passou mesa e para quem não passou: sem mesa, sobra só o oficial.
+  const itens = await prisma.$queryRaw<LinhaCatalogo[]>`
+    SELECT id, nome, fonte, "mesaId", dados
+    FROM "ItemCatalogo"
+    WHERE sistema = ${SISTEMA}
+      AND tipo = ${tipo}::"TipoCatalogo"
+      AND ("mesaId" IS NULL OR "mesaId" = ${mesaId ?? null}::text)
+      AND (
+        unaccent(nome) ILIKE unaccent(${trecho})
+        OR unaccent(dados->>'nomeOriginal') ILIKE unaccent(${trecho})
+        OR EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements_text(
+            -- O CASE evita explodir se algum 'apelidos' não for array: sem
+            -- ele, jsonb_array_elements_text derruba a consulta inteira.
+            CASE WHEN jsonb_typeof(dados->'apelidos') = 'array'
+                 THEN dados->'apelidos'
+                 ELSE '[]'::jsonb END
+          ) AS apelido(valor)
+          -- Sem curinga em volta: apelido serve para reencontrar um nome
+          -- inteiro que existiu, não para alargar a busca.
+          WHERE unaccent(apelido.valor) ILIKE unaccent(${alvo})
+        )
+      )
+    ORDER BY nome
+    LIMIT ${limite}::int
+  `;
 
   return itens.map((i) => ({
     id: i.id,

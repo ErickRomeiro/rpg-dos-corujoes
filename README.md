@@ -121,6 +121,8 @@ cp .env.example .env.local
 #   OWNER_EMAILS         → Seu e-mail (vira OWNER automaticamente)
 
 # 3. Prepare o banco
+# (sincroniza o schema e cria a extensão unaccent, que a busca do catálogo usa
+#  para "agua" achar "Água")
 npm run db:push
 
 # 4. Rode em desenvolvimento
@@ -133,7 +135,8 @@ Abra [http://localhost:3000](http://localhost:3000).
 
 ```bash
 npm run db:generate    # Regenera Prisma Client
-npm run db:push        # Sincroniza schema com o banco
+npm run db:push        # Sincroniza schema com o banco (+ extensão da busca)
+npm run db:busca       # Só a extensão unaccent, se precisar rodar isolada
 npm run db:studio      # Abre Prisma Studio (GUI do banco)
 ```
 
