@@ -74,6 +74,90 @@ export function Texto({
   );
 }
 
+/**
+ * Campo de texto que só aceita dígito.
+ *
+ * A filtragem é no `onChange` e não em `onKeyDown` porque tecla não é a única
+ * porta de entrada: colar, arrastar texto e o autocompletar do navegador também
+ * escrevem no campo, e um bloqueio por tecla deixa todos esses passarem.
+ *
+ * Continua sendo `type="text"`: o `type="number"` do HTML aceita "e", "+" e "-"
+ * (é notação científica) e, quando o conteúdo é inválido, devolve string vazia
+ * na leitura — o que apagaria o que a pessoa digitou.
+ */
+export function SoDigitos({
+  valor,
+  aoMudar,
+  placeholder,
+  maxLength = 4,
+}: {
+  valor: string;
+  aoMudar: (v: string) => void;
+  placeholder?: string;
+  maxLength?: number;
+}) {
+  return (
+    <input
+      value={valor}
+      onChange={(e) => aoMudar(e.target.value.replace(/\D/g, ""))}
+      placeholder={placeholder}
+      maxLength={maxLength}
+      inputMode="numeric"
+      autoComplete="off"
+      className={inputCls}
+    />
+  );
+}
+
+/**
+ * Deixa passar só o que forma um número com uma casa decimal opcional.
+ * Ponto vira vírgula (teclado numérico costuma dar ponto) e, se sobrar mais de
+ * um separador, vale o PRIMEIRO: quem digita "1,8,5" quis "1,85".
+ */
+function soMedida(bruto: string): string {
+  const limpo = bruto.replace(/[^\d.,]/g, "").replace(/[.,]/g, ",");
+  const [inteira, ...resto] = limpo.split(",");
+  return resto.length ? `${inteira},${resto.join("")}` : inteira;
+}
+
+/**
+ * Campo de medida: aceita só número enquanto se digita e, ao sair, escreve a
+ * unidade sozinho — "180" vira "1,80 m", "70" vira "70 kg".
+ *
+ * A formatação acontece no blur, e não a cada tecla, porque formatar durante a
+ * digitação briga com quem está digitando: o cursor pula e o "1," de "1,80"
+ * viraria "1,00 m" antes de a pessoa chegar no 8.
+ */
+export function Medida({
+  valor,
+  aoMudar,
+  placeholder,
+  formatar,
+  dica,
+}: {
+  valor: string;
+  aoMudar: (v: string) => void;
+  placeholder?: string;
+  /** Recebe o que foi digitado (só dígitos e vírgula) e devolve o texto final. */
+  formatar: (bruto: string) => string;
+  dica?: string;
+}) {
+  return (
+    <>
+      <input
+        value={valor}
+        onChange={(e) => aoMudar(soMedida(e.target.value))}
+        onBlur={() => aoMudar(formatar(valor))}
+        placeholder={placeholder}
+        inputMode="decimal"
+        autoComplete="off"
+        className={inputCls}
+      />
+      {dica && <p className="mt-1 text-[11px] text-muted">{dica}</p>}
+    </>
+  );
+}
+
 export function Numero({
   valor,
   aoMudar,

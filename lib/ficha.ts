@@ -718,6 +718,46 @@ export function nomeDoJogador(user: {
   return user.name ?? user.email ?? "";
 }
 
+/**
+ * Escreve a altura com a unidade, a partir do que a pessoa digitou.
+ *
+ * Aceita as duas formas que se digita na prática: "1,80" (metros) e "180"
+ * (centímetros). A separação é por grandeza — nenhum personagem jogável de 3.5
+ * tem 3 metros, então um número a partir de 3 só pode ser centímetro. Isso é
+ * palpite sobre intenção, e por isso o campo diz as duas formas na dica.
+ *
+ * Texto que não vira número volta intacto: ficha antiga com "alto e magro"
+ * continua valendo, e ninguém perde o que escreveu por causa da formatação.
+ */
+export function formatarAltura(bruto: string): string {
+  const t = bruto.trim();
+  if (!t) return "";
+
+  const n = Number(t.replace(",", "."));
+  if (!Number.isFinite(n) || n <= 0) return bruto;
+
+  const metros = n >= 3 ? n / 100 : n;
+  return `${metros.toFixed(2).replace(".", ",")} m`;
+}
+
+/**
+ * Escreve o peso com a unidade: "70" vira "70 kg", "70,5" vira "70,5 kg".
+ *
+ * Guarda no máximo uma casa decimal — peso de personagem em décimo de quilo já
+ * é detalhe demais para a mesa — e a casa some quando é zero, para não escrever
+ * "70,0 kg". Como na altura, texto que não vira número volta intacto.
+ */
+export function formatarPeso(bruto: string): string {
+  const t = bruto.trim();
+  if (!t) return "";
+
+  const n = Number(t.replace(",", "."));
+  if (!Number.isFinite(n) || n <= 0) return bruto;
+
+  const arredondado = Math.round(n * 10) / 10;
+  return `${String(arredondado).replace(".", ",")} kg`;
+}
+
 export function dadosVazios(): DadosFicha {
   return {
     jogador: "",

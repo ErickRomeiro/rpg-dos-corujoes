@@ -12,12 +12,20 @@ import { salvarFicha, type EstadoFicha } from "@/app/dnd35/fichas/actions";
 import {
   Campo,
   Derivado,
+  Medida,
   Numero,
   Secao,
   Selecao,
+  SoDigitos,
   Texto,
   inputCls,
 } from "@/app/dnd35/fichas/_components/campos";
+import { SelecaoCor } from "@/app/dnd35/fichas/_components/selecao-cor";
+import {
+  CORES_CABELO,
+  CORES_OLHOS,
+  CORES_PELE,
+} from "@/lib/dnd35/aparencia";
 import { ListaEditavel } from "@/app/dnd35/fichas/_components/lista-editavel";
 import { SecaoPericias } from "@/app/dnd35/fichas/_components/secao-pericias";
 import { bbaProgressivo } from "@/lib/dnd35/classes";
@@ -45,7 +53,9 @@ import {
   desAplicadaCa,
   falhaMagiaAuto,
   fortitudeAuto,
+  formatarAltura,
   formatarMod,
+  formatarPeso,
   iniciativaAuto,
   modAtributo,
   modificador,
@@ -282,7 +292,7 @@ export function FichaForm({
           </Campo>
 
           <Campo rotulo="Idade" className="sm:col-span-1">
-            <Texto
+            <SoDigitos
               valor={dados.idade}
               aoMudar={(v) => set("idade", v)}
               placeholder={faixas?.idade}
@@ -296,27 +306,46 @@ export function FichaForm({
             />
           </Campo>
           <Campo rotulo="Altura" className="sm:col-span-1">
-            <Texto
+            <Medida
               valor={dados.altura}
               aoMudar={(v) => set("altura", v)}
               placeholder={faixas?.altura}
+              formatar={formatarAltura}
+              dica="1,80 ou 180"
             />
           </Campo>
           <Campo rotulo="Peso" className="sm:col-span-1">
-            <Texto
+            <Medida
               valor={dados.peso}
               aoMudar={(v) => set("peso", v)}
               placeholder={faixas?.peso}
+              formatar={formatarPeso}
+              dica="em quilos"
             />
           </Campo>
           <Campo rotulo="Olhos" className="sm:col-span-1">
-            <Texto valor={dados.olhos} aoMudar={(v) => set("olhos", v)} />
+            <SelecaoCor
+              valor={dados.olhos}
+              aoMudar={(v) => set("olhos", v)}
+              opcoes={CORES_OLHOS}
+              rotulo="Cor dos olhos"
+            />
           </Campo>
           <Campo rotulo="Cabelo" className="sm:col-span-1">
-            <Texto valor={dados.cabelo} aoMudar={(v) => set("cabelo", v)} />
+            <SelecaoCor
+              valor={dados.cabelo}
+              aoMudar={(v) => set("cabelo", v)}
+              opcoes={CORES_CABELO}
+              rotulo="Cor do cabelo"
+            />
           </Campo>
           <Campo rotulo="Pele" className="sm:col-span-1">
-            <Texto valor={dados.pele} aoMudar={(v) => set("pele", v)} />
+            <SelecaoCor
+              valor={dados.pele}
+              aoMudar={(v) => set("pele", v)}
+              opcoes={CORES_PELE}
+              rotulo="Cor da pele"
+            />
           </Campo>
           <Campo rotulo="XP atual" className="sm:col-span-2">
             <Numero valor={dados.xpAtual} aoMudar={(v) => set("xpAtual", v)} />

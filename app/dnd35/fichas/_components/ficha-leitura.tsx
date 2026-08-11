@@ -39,6 +39,13 @@ import {
   vontade,
   type DadosFicha,
 } from "@/lib/ficha";
+import {
+  CORES_CABELO,
+  CORES_OLHOS,
+  CORES_PELE,
+  corPorNome,
+  type OpcaoCor,
+} from "@/lib/dnd35/aparencia";
 import { classePor } from "@/lib/dnd35/classes";
 
 const vazio = (v: unknown) =>
@@ -54,6 +61,45 @@ function Dado({ rotulo, valor }: { rotulo: string; valor: React.ReactNode }) {
       </dt>
       <dd className="text-sm font-medium">{valor}</dd>
     </div>
+  );
+}
+
+/**
+ * Cor de aparência com a amostra ao lado do nome.
+ *
+ * O nome vem sempre, e a amostra só quando o valor está na lista — ficha antiga
+ * com texto livre mostra o texto sozinho. Impressora costuma não imprimir cor
+ * de fundo, e é por isso que a amostra acompanha o nome em vez de substituí-lo:
+ * no papel a informação continua inteira.
+ */
+function Cor({
+  rotulo,
+  valor,
+  opcoes,
+}: {
+  rotulo: string;
+  valor: string;
+  opcoes: readonly OpcaoCor[];
+}) {
+  if (vazio(valor)) return null;
+  const achada = corPorNome(opcoes, valor);
+
+  return (
+    <Dado
+      rotulo={rotulo}
+      valor={
+        <span className="flex items-center gap-1.5">
+          {achada?.hex && (
+            <span
+              aria-hidden
+              className="h-3 w-3 flex-none rounded-sm border border-black/40"
+              style={{ backgroundColor: achada.hex }}
+            />
+          )}
+          {valor}
+        </span>
+      }
+    />
   );
 }
 
@@ -182,9 +228,9 @@ export function FichaLeitura({
           <Dado rotulo="Sexo" valor={dados.sexo} />
           <Dado rotulo="Altura" valor={dados.altura} />
           <Dado rotulo="Peso" valor={dados.peso} />
-          <Dado rotulo="Olhos" valor={dados.olhos} />
-          <Dado rotulo="Cabelo" valor={dados.cabelo} />
-          <Dado rotulo="Pele" valor={dados.pele} />
+          <Cor rotulo="Olhos" valor={dados.olhos} opcoes={CORES_OLHOS} />
+          <Cor rotulo="Cabelo" valor={dados.cabelo} opcoes={CORES_CABELO} />
+          <Cor rotulo="Pele" valor={dados.pele} opcoes={CORES_PELE} />
           <Dado
             rotulo="XP"
             valor={
