@@ -86,6 +86,12 @@ export default async function FichaPage({
           >
             Editar
           </Link>
+          <Link
+            href={`/dnd35/fichas/${ficha.id}/carta`}
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:border-accent"
+          >
+            Carta
+          </Link>
           <BotaoImprimir />
           <Link
             href="/dnd35/fichas/nova"
