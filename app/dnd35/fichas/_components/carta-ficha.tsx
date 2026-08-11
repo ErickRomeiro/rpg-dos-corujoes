@@ -195,15 +195,26 @@ export function CartaFicha({
             Sem retrato. Envie um na edição da ficha.
           </div>
         ) : (
-          // O enquadramento vem da ficha: centro por padrão, ajustável por
-          // quem edita. Ver `retratoPos` em lib/ficha.ts.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={dados.retrato}
-            alt={`Retrato de ${nome}`}
-            className="h-full w-full object-cover"
-            style={{ objectPosition: `50% ${dados.retratoPos}%` }}
-          />
+          <>
+            {/* A carta mostra o personagem INTEIRO, então a arte é contida e
+                não recortada — recorte é o que corta pernas e cabeça. O preço
+                é sobrar moldura nas laterais, e quem preenche é a própria
+                imagem borrada por trás: fica um fundo que combina com a arte
+                em vez de uma barra vazia. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={dados.retrato}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={dados.retrato}
+              alt={`Retrato de ${nome}`}
+              className="relative h-full w-full object-contain"
+            />
+          </>
         )}
 
         {/* Chips de combate na lateral, como na referência */}

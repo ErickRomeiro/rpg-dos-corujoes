@@ -252,13 +252,15 @@ export type DadosFicha = {
    */
   retrato: string;
   /**
-   * Enquadramento vertical do retrato, de 0 (topo) a 100 (base). 50 = centro.
+   * Onde está o ROSTO na imagem, de 0 (topo) a 100 (base). 50 = centro.
    *
-   * Existe porque arte de personagem costuma ser de corpo inteiro e mais alta
-   * que a moldura, e aí o recorte decide o que se vê. Centralizar acerta na
-   * maioria dos casos, mas não em todos — e adivinhar onde está o personagem
-   * exigiria detecção de imagem, que não é confiável. Então o padrão é o
-   * centro e quem quiser reenquadra.
+   * Só a miniatura usa: ela é um quadrado pequeno, serve para identificar o
+   * personagem, e num quadrado desses o corpo inteiro não identifica ninguém —
+   * então ela recorta no rosto. A carta não usa, porque mostra a figura
+   * inteira sem recortar.
+   *
+   * É ajuste manual porque achar o rosto sozinho exigiria detecção de imagem,
+   * que não é confiável. O padrão é o centro, e quem edita corrige.
    */
   retratoPos: number;
   xpAtual: number | null;

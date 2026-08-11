@@ -44,10 +44,11 @@ export function RetratoFicha({
 
   return (
     <div className="flex flex-wrap items-start gap-4">
-      {/* A prévia usa a MESMA proporção e o mesmo recorte da carta, senão o
-          ajuste seria feito contra um enquadramento que não é o real. */}
+      {/* A prévia é QUADRADA porque o que este controle ajusta é a miniatura,
+          e ela é quadrada. Mostrar aqui a proporção da carta faria ajustar
+          contra um enquadramento que não é o afetado. */}
       <div className="w-28 flex-none">
-        <div className="aspect-[3/4] overflow-hidden rounded-lg border border-border bg-background">
+        <div className="aspect-square overflow-hidden rounded-lg border border-border bg-background">
           {retrato ? (
             // <img> e não next/image, como já é feito com os avatares do
             // Google: o arquivo vem de host externo e não precisa do otimizador.
@@ -69,7 +70,7 @@ export function RetratoFicha({
           <form ref={formPos} action={ajustarRetrato} className="mt-2">
             <input type="hidden" name="id" value={fichaId} />
             <label className="block text-[10px] font-medium text-muted">
-              Enquadramento
+              Rosto na miniatura
             </label>
             {/* O `name` vive no próprio controle, e não num campo escondido
                 espelhando o estado: espelhar criava uma corrida — o envio

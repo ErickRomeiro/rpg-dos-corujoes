@@ -226,11 +226,16 @@ export function FichaLeitura({
         <div className="min-w-0 flex-1 space-y-6 print:space-y-4">
       <header className="flex items-start gap-4">
         {!vazio(dados.retrato) && (
+          // A miniatura foca o ROSTO — é uma identificação, e num quadrado de
+          // 80px o corpo inteiro não diz quem é o personagem. Por isso ela
+          // recorta (ao contrário da carta, que contém) e usa `retratoPos`
+          // para saber onde o rosto está.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={dados.retrato}
             alt={`Retrato de ${nome}`}
             className="h-20 w-20 flex-none rounded-lg border border-border object-cover print:border-black/30"
+            style={{ objectPosition: `50% ${dados.retratoPos}%` }}
           />
         )}
         <div className="min-w-0">
