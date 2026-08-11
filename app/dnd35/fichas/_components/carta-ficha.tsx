@@ -45,39 +45,59 @@ import {
 const vazio = (v: unknown) =>
   v == null || (typeof v === "string" && v.trim() === "");
 
-/** Chip de número com ícone, no formato dos da referência. */
-function Chip({
-  icone,
-  rotulo,
-  valor,
-  cor,
-}: {
+type Chip = {
   icone: string;
   rotulo: string;
   valor: string;
   cor: "ataque" | "agil" | "defesa";
-}) {
-  const fundo = {
-    ataque: "bg-amber-500/90 text-black",
-    agil: "bg-accent text-background",
-    defesa: "bg-emerald-500/90 text-black",
-  }[cor];
+};
 
+const FUNDO: Record<Chip["cor"], string> = {
+  ataque: "bg-amber-500/90 text-black",
+  agil: "bg-accent text-background",
+  defesa: "bg-emerald-500/90 text-black",
+};
+
+/**
+ * Chip compacto: só ícone e número, como na referência.
+ *
+ * O rótulo não cabe aqui — escrito por extenso dentro do chip, ele dobrava a
+ * largura e comia a arte, que é o que a carta tem de mostrar. Quem explica os
+ * ícones é a legenda, uma vez só, embaixo. Para quem não vê os ícones, o nome
+ * vai no texto acessível e no `title`.
+ */
+function Chip({ icone, rotulo, valor, cor }: Chip) {
   return (
     <div
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 ${fundo}`}
+      className={`flex items-center gap-1.5 rounded-lg px-2 py-1 ${FUNDO[cor]}`}
       title={rotulo}
     >
-      <span aria-hidden className="text-lg leading-none">
+      <span aria-hidden className="text-base leading-none">
         {icone}
       </span>
-      <span className="flex flex-col leading-tight">
-        <span className="text-[9px] font-semibold uppercase tracking-wider opacity-80">
-          {rotulo}
-        </span>
-        <span className="text-lg font-bold tabular-nums">{valor}</span>
+      <span className="sr-only">{rotulo}:</span>
+      <span className="text-base font-bold leading-none tabular-nums">
+        {valor}
       </span>
     </div>
+  );
+}
+
+/**
+ * A legenda dos ícones.
+ *
+ * Sai da MESMA lista que desenha os chips, e não de um texto escrito à parte:
+ * legenda copiada à mão é legenda que um dia discorda do que está na carta.
+ */
+function Legenda({ chips }: { chips: Chip[] }) {
+  return (
+    <p className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
+      {chips.map((c) => (
+        <span key={c.rotulo} className="whitespace-nowrap">
+          <span aria-hidden>{c.icone}</span> {c.rotulo}
+        </span>
+      ))}
+    </p>
   );
 }
 
@@ -121,6 +141,35 @@ export function CartaFicha({
     ...dados.classes.map((c) => c.classe).filter((c) => !vazio(c)),
   ].filter((x) => !vazio(x));
 
+  // Os chips sobre a arte: o que se pergunta em combate.
+  const combate: Chip[] = [
+    {
+      icone: "👊",
+      rotulo: "corpo a corpo",
+      valor: formatarMod(ataqueCorpo(dados)),
+      cor: "ataque",
+    },
+    {
+      icone: "⚡",
+      rotulo: "iniciativa",
+      valor: formatarMod(iniciativa(dados)),
+      cor: "agil",
+    },
+    { icone: "🛡️", rotulo: "CA", valor: String(ca(dados)), cor: "defesa" },
+  ];
+
+  // Os da faixa de baixo: o resumo do personagem.
+  const resumo: Chip[] = [
+    { icone: "⭐", rotulo: "nível", valor: String(nivel), cor: "ataque" },
+    {
+      icone: "🏹",
+      rotulo: "à distância",
+      valor: formatarMod(ataqueDistancia(dados)),
+      cor: "agil",
+    },
+    { icone: "❤️", rotulo: "PV", valor: textoPv, cor: "defesa" },
+  ];
+
   return (
     <article className="mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
       {/* Nome e nível */}
@@ -151,20 +200,10 @@ export function CartaFicha({
           />
         )}
 
-        <div className="absolute left-2 top-2 flex flex-col gap-1.5">
-          <Chip
-            icone="👊"
-            rotulo="corpo a corpo"
-            valor={formatarMod(ataqueCorpo(dados))}
-            cor="ataque"
-          />
-          <Chip
-            icone="⚡"
-            rotulo="iniciativa"
-            valor={formatarMod(iniciativa(dados))}
-            cor="agil"
-          />
-          <Chip icone="🛡️" rotulo="CA" valor={String(ca(dados))} cor="defesa" />
+        <div className="absolute left-2 top-2 flex flex-col items-start gap-1.5">
+          {combate.map((c) => (
+            <Chip key={c.rotulo} {...c} />
+          ))}
         </div>
       </div>
 
@@ -211,21 +250,14 @@ export function CartaFicha({
         )}
       </div>
 
-      {/* Faixa de baixo */}
-      <footer className="flex gap-1.5 border-t border-border bg-background p-3">
-        <Chip
-          icone="⭐"
-          rotulo="nível"
-          valor={String(nivel)}
-          cor="ataque"
-        />
-        <Chip
-          icone="🏹"
-          rotulo="à distância"
-          valor={formatarMod(ataqueDistancia(dados))}
-          cor="agil"
-        />
-        <Chip icone="❤️" rotulo="PV" valor={textoPv} cor="defesa" />
+      {/* Faixa de baixo: os chips de resumo e a legenda de todos eles */}
+      <footer className="space-y-2 border-t border-border bg-background p-3">
+        <div className="flex gap-1.5">
+          {resumo.map((c) => (
+            <Chip key={c.rotulo} {...c} />
+          ))}
+        </div>
+        <Legenda chips={[...combate, ...resumo]} />
       </footer>
     </article>
   );
