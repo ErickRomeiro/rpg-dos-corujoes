@@ -59,18 +59,25 @@ const FUNDO: Record<Chip["cor"], string> = {
 };
 
 /**
- * Chip compacto: só ícone e número, como na referência.
+ * Chip compacto: só ícone e número, e o nome aparece ao apontar ou tocar.
  *
- * O rótulo não cabe aqui — escrito por extenso dentro do chip, ele dobrava a
- * largura e comia a arte, que é o que a carta tem de mostrar. Quem explica os
- * ícones é a legenda, uma vez só, embaixo. Para quem não vê os ícones, o nome
- * vai no texto acessível e no `title`.
+ * O rótulo escrito por extenso dentro do chip dobrava a largura dele e comia a
+ * arte, que é o que a carta tem de mostrar. Então ele vira etiqueta sob
+ * demanda.
+ *
+ * É `<button>` por um motivo prático, não semântico: hover não existe em tela
+ * de toque, e elemento focável resolve os dois — no computador aparece ao
+ * apontar, no celular ao tocar. Sem estado e sem JavaScript, o que mantém a
+ * carta renderizando no servidor.
+ *
+ * A etiqueta é `aria-hidden` e o nome de verdade vai no texto acessível: quem
+ * usa leitor de tela ouve "iniciativa +3" sem depender de apontar para nada.
  */
 function Chip({ icone, rotulo, valor, cor }: Chip) {
   return (
-    <div
-      className={`flex items-center gap-1.5 rounded-lg px-2 py-1 ${FUNDO[cor]}`}
-      title={rotulo}
+    <button
+      type="button"
+      className={`group relative flex items-center gap-1.5 rounded-lg px-2 py-1 ${FUNDO[cor]}`}
     >
       <span aria-hidden className="text-base leading-none">
         {icone}
@@ -79,19 +86,33 @@ function Chip({ icone, rotulo, valor, cor }: Chip) {
       <span className="text-base font-bold leading-none tabular-nums">
         {valor}
       </span>
-    </div>
+
+      {/* Abre para a DIREITA porque a carta tem `overflow-hidden`: para cima ou
+          para a esquerda, a etiqueta seria cortada pela borda. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-full top-1/2 z-20 ml-1.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus:opacity-100"
+      >
+        {rotulo}
+      </span>
+    </button>
   );
 }
 
 /**
- * A legenda dos ícones.
+ * A legenda dos ícones — SÓ na impressão.
+ *
+ * Na tela ela saiu: cada chip diz o que é ao ser apontado ou tocado, e repetir
+ * tudo embaixo era ocupar a carta com informação que já está a um gesto. No
+ * papel não há apontar nem tocar, então lá ela continua sendo a única forma de
+ * saber o que cada ícone significa.
  *
  * Sai da MESMA lista que desenha os chips, e não de um texto escrito à parte:
  * legenda copiada à mão é legenda que um dia discorda do que está na carta.
  */
 function Legenda({ chips }: { chips: Chip[] }) {
   return (
-    <p className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
+    <p className="hidden flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted print:flex">
       {chips.map((c) => (
         <span key={c.rotulo} className="whitespace-nowrap">
           <span aria-hidden>{c.icone}</span> {c.rotulo}
