@@ -17,6 +17,11 @@ import {
   type DadosFicha,
 } from "@/lib/ficha";
 import { AjustePv } from "@/app/dnd35/mestre/_components/ajuste-pv";
+import {
+  Combate,
+  type LinhaCombate,
+} from "@/app/dnd35/mestre/_components/combate";
+import { ordenar } from "@/lib/combate";
 
 export const metadata: Metadata = { title: "Painel do mestre · D&D 3.5" };
 
@@ -61,6 +66,38 @@ export default async function PainelMestrePage({
     },
   });
   if (!mesa) notFound();
+
+  // O combate é buscado à parte porque tem vida própria: existe ou não,
+  // independente de quantos membros a mesa tem.
+  const combateBruto = await prisma.combate.findUnique({
+    where: { mesaId: id },
+    include: {
+      participantes: {
+        include: { ficha: { select: { id: true, nome: true, dados: true } } },
+      },
+    },
+  });
+
+  // PV de personagem mora na ficha, não na linha do combate — é a mesma fonte
+  // que o painel acima mostra, então dano aplicado num lugar aparece no outro.
+  const combate = combateBruto
+    ? {
+        rodada: combateBruto.rodada,
+        turno: combateBruto.turno,
+        fila: ordenar(combateBruto.participantes).map((p): LinhaCombate => {
+          const dados = p.ficha ? lerDados(p.ficha.dados) : null;
+          return {
+            id: p.id,
+            nome: p.ficha?.nome ?? p.nome,
+            iniciativa: p.iniciativa,
+            modIniciativa: p.modIniciativa,
+            fichaId: p.fichaId,
+            pvAtual: dados ? dados.pvAtual : p.pvAtual,
+            pvMax: dados ? pvMax(dados) : p.pvMax,
+          };
+        }),
+      }
+    : null;
 
   const mestres = mesa.membros.filter((m) => m.papel === "MESTRE");
   const jogadores = mesa.membros.filter((m) => m.papel === "JOGADOR");
@@ -110,139 +147,150 @@ export default async function PainelMestrePage({
           Nenhum jogador desta mesa tem ficha vinculada ainda.
         </div>
       ) : (
-        <>
-          {/* Panorama de combate */}
-          <section className="rounded-xl border border-border bg-surface p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Panorama de combate
-            </h2>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[720px] border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
-                    <th className="pb-2 text-left font-medium">Personagem</th>
-                    <th className="pb-2 text-left font-medium">Jogador</th>
-                    <th className="pb-2 text-center font-medium">PV</th>
-                    <th className="pb-2 text-center font-medium">CA</th>
-                    <th className="pb-2 text-center font-medium">Inic.</th>
-                    <th className="pb-2 text-center font-medium">Fort</th>
-                    <th className="pb-2 text-center font-medium">Ref</th>
-                    <th className="pb-2 text-center font-medium">Von</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {comFicha.map(({ membro, ficha, dados }) => (
-                    <tr
-                      key={membro.id}
-                      className="border-b border-border/50 last:border-0"
-                    >
-                      <td className="py-2 pr-3">
-                        <Link
-                          href={`/dnd35/fichas/${ficha.id}`}
-                          className="font-medium transition-colors hover:text-accent"
-                        >
-                          {ficha.nome}
-                        </Link>
-                        {dados.classeNivel && (
-                          <span className="block text-xs text-muted">
-                            {[dados.raca, dados.classeNivel]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-3 text-muted">
-                        {membro.user.name ?? membro.user.email}
-                      </td>
-                      <td className="px-2 text-center">
-                        <AjustePv
-                          fichaId={ficha.id}
-                          mesaId={mesa.id}
-                          nome={ficha.nome}
-                          atual={dados.pvAtual}
-                          maximo={pvMax(dados)}
-                        />
-                      </td>
-                      <td className="px-2 text-center">{ca(dados)}</td>
-                      <td className="px-2 text-center">
-                        {formatarMod(iniciativa(dados))}
-                      </td>
-                      {[fortitude(dados), reflexos(dados), vontade(dados)].map(
-                        (valor, i) => (
-                          <td key={i} className="px-2 text-center">
-                            {formatarMod(valor)}
-                          </td>
-                        ),
+        /* Panorama de combate */
+        <section className="rounded-xl border border-border bg-surface p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            Panorama de combate
+          </h2>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[720px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                  <th className="pb-2 text-left font-medium">Personagem</th>
+                  <th className="pb-2 text-left font-medium">Jogador</th>
+                  <th className="pb-2 text-center font-medium">PV</th>
+                  <th className="pb-2 text-center font-medium">CA</th>
+                  <th className="pb-2 text-center font-medium">Inic.</th>
+                  <th className="pb-2 text-center font-medium">Fort</th>
+                  <th className="pb-2 text-center font-medium">Ref</th>
+                  <th className="pb-2 text-center font-medium">Von</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comFicha.map(({ membro, ficha, dados }) => (
+                  <tr
+                    key={membro.id}
+                    className="border-b border-border/50 last:border-0"
+                  >
+                    <td className="py-2 pr-3">
+                      <Link
+                        href={`/dnd35/fichas/${ficha.id}`}
+                        className="font-medium transition-colors hover:text-accent"
+                      >
+                        {ficha.nome}
+                      </Link>
+                      {dados.classeNivel && (
+                        <span className="block text-xs text-muted">
+                          {[dados.raca, dados.classeNivel]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
                       )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-3 text-xs text-muted">
-              Vermelho = na metade ou menos dos pontos de vida. Abaixo de zero o
-              personagem está morrendo, e em −10 está morto. O − aplica dano e o
-              + cura, direto na ficha do jogador — cura não passa do máximo, e
-              nada disso entra no histórico de alterações.
-            </p>
-          </section>
-
-          {/* Perícias que o mestre rola escondido */}
-          <section className="mt-8 rounded-xl border border-border bg-surface p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
-              Rolagens secretas
-            </h2>
-            <p className="mt-1 text-xs text-muted">
-              Totais já com atributo, graduações, bônus diversos e penalidade de
-              armadura.
-            </p>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[560px] border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
-                    <th className="pb-2 text-left font-medium">Personagem</th>
-                    {PERICIAS_PASSIVAS.map((pid) => (
-                      <th key={pid} className="pb-2 text-center font-medium">
-                        {pericia(pid).nome}
-                      </th>
-                    ))}
+                    </td>
+                    <td className="py-2 pr-3 text-muted">
+                      {membro.user.name ?? membro.user.email}
+                    </td>
+                    <td className="px-2 text-center">
+                      <AjustePv
+                        fichaId={ficha.id}
+                        mesaId={mesa.id}
+                        nome={ficha.nome}
+                        atual={dados.pvAtual}
+                        maximo={pvMax(dados)}
+                      />
+                    </td>
+                    <td className="px-2 text-center">{ca(dados)}</td>
+                    <td className="px-2 text-center">
+                      {formatarMod(iniciativa(dados))}
+                    </td>
+                    {[fortitude(dados), reflexos(dados), vontade(dados)].map(
+                      (valor, i) => (
+                        <td key={i} className="px-2 text-center">
+                          {formatarMod(valor)}
+                        </td>
+                      ),
+                    )}
                   </tr>
-                </thead>
-                <tbody>
-                  {comFicha.map(({ membro, ficha, dados }) => (
-                    <tr
-                      key={membro.id}
-                      className="border-b border-border/50 last:border-0"
-                    >
-                      <td className="py-2 pr-3 font-medium">{ficha.nome}</td>
-                      {PERICIAS_PASSIVAS.map((pid) => {
-                        const p = pericia(pid);
-                        const ranks = dados.pericias[pid]?.ranks ?? 0;
-                        const usavel = p.semTreino || ranks > 0;
-                        return (
-                          <td key={pid} className="px-2 text-center">
-                            {usavel ? (
-                              <span className="text-accent">
-                                {formatarMod(totalPassiva(dados, pid))}
-                              </span>
-                            ) : (
-                              <span
-                                className="text-muted"
-                                title="Sem treinamento nesta perícia"
-                              >
-                                —
-                              </span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-xs text-muted">
+            Vermelho = na metade ou menos dos pontos de vida. Abaixo de zero o
+            personagem está morrendo, e em −10 está morto. O − aplica dano e o
+            + cura, direto na ficha do jogador — cura não passa do máximo, e
+            nada disso entra no histórico de alterações.
+          </p>
+        </section>
+      )}
+
+      {/* Rastreador de iniciativa. Fica logo abaixo do panorama porque é a tela
+          que o mestre olha a cada turno, e acima das rolagens secretas,
+          consultadas bem mais de vez em quando. Fora do condicional acima de
+          propósito: dá para rodar um combate só de monstros, numa mesa em que
+          ninguém vinculou ficha ainda. */}
+      <Combate
+        mesaId={mesa.id}
+        combate={combate}
+        temJogadores={comFicha.length > 0}
+      />
+
+      {comFicha.length > 0 && (
+        /* Perícias que o mestre rola escondido */
+        <section className="mt-8 rounded-xl border border-border bg-surface p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            Rolagens secretas
+          </h2>
+          <p className="mt-1 text-xs text-muted">
+            Totais já com atributo, graduações, bônus diversos e penalidade de
+            armadura.
+          </p>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[560px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                  <th className="pb-2 text-left font-medium">Personagem</th>
+                  {PERICIAS_PASSIVAS.map((pid) => (
+                    <th key={pid} className="pb-2 text-center font-medium">
+                      {pericia(pid).nome}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </>
+                </tr>
+              </thead>
+              <tbody>
+                {comFicha.map(({ membro, ficha, dados }) => (
+                  <tr
+                    key={membro.id}
+                    className="border-b border-border/50 last:border-0"
+                  >
+                    <td className="py-2 pr-3 font-medium">{ficha.nome}</td>
+                    {PERICIAS_PASSIVAS.map((pid) => {
+                      const p = pericia(pid);
+                      const ranks = dados.pericias[pid]?.ranks ?? 0;
+                      const usavel = p.semTreino || ranks > 0;
+                      return (
+                        <td key={pid} className="px-2 text-center">
+                          {usavel ? (
+                            <span className="text-accent">
+                              {formatarMod(totalPassiva(dados, pid))}
+                            </span>
+                          ) : (
+                            <span
+                              className="text-muted"
+                              title="Sem treinamento nesta perícia"
+                            >
+                              —
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
       {semFicha.length > 0 && (
