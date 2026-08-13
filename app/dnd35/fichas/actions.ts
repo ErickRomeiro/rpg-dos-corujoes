@@ -9,6 +9,7 @@ import { usuarioAtual, podeEditarFicha } from "@/lib/permissoes";
 import {
   dadosVazios,
   lerDados,
+  lerEnquadramento,
   nomeDoJogador,
   type DadosFicha,
 } from "@/lib/ficha";
@@ -312,7 +313,8 @@ export async function removerRetrato(formData: FormData) {
 }
 
 /**
- * Guarda o enquadramento vertical do retrato (0 = topo, 100 = base).
+ * Guarda o recorte do retrato — qual parte da imagem aparece, e com quanta
+ * ampliação, em um dos dois quadros (carta ou miniatura).
  *
  * É ação própria, e não parte do "Salvar ficha", pelo mesmo motivo do envio: a
  * pessoa está olhando a imagem e ajustando até ficar bom, e ter de lembrar de
@@ -329,18 +331,28 @@ export async function ajustarRetrato(formData: FormData) {
   if (!ficha) return;
   if (!(await podeEditarFicha(user, ficha, id))) return;
 
-  // Vem de um controle deslizante, mas a action é rota própria e pode receber
-  // qualquer coisa — a faixa é imposta aqui, não confiada ao formulário.
-  const bruto = Number(formData.get("posicao"));
-  const posicao = Number.isFinite(bruto)
-    ? Math.min(100, Math.max(0, Math.round(bruto)))
-    : 50;
+  const alvo = String(formData.get("alvo") ?? "");
+  if (alvo !== "carta" && alvo !== "mini") return;
+
+  // Os números vêm de um controle na tela, mas a action é rota própria e pode
+  // receber qualquer coisa — quem impõe as faixas é `lerEnquadramento`, o mesmo
+  // que normaliza na leitura, e não o formulário.
+  const enquadramento = lerEnquadramento({
+    x: Number(formData.get("x")),
+    y: Number(formData.get("y")),
+    zoom: Number(formData.get("zoom")),
+  });
 
   const dados = lerDados(ficha.dados);
+  const campo = alvo === "carta" ? "retratoCarta" : "retratoMini";
+
   await prisma.ficha.update({
     where: { id },
     data: {
-      dados: { ...dados, retratoPos: posicao } as unknown as Prisma.InputJsonValue,
+      dados: {
+        ...dados,
+        [campo]: enquadramento,
+      } as unknown as Prisma.InputJsonValue,
     },
   });
 

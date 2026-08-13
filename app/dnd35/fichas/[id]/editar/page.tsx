@@ -73,7 +73,8 @@ export default async function EditarFichaPage({
         <RetratoFicha
           fichaId={ficha.id}
           retrato={dados.retrato}
-          retratoPos={dados.retratoPos}
+          retratoCarta={dados.retratoCarta}
+          retratoMini={dados.retratoMini}
           nome={ficha.nome}
         />
       </section>

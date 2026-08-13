@@ -24,6 +24,7 @@ import {
   caDesprevenido,
   caToque,
   cargasAuto,
+  estiloRecorte,
   fortitude,
   formatarMod,
   iniciativa,
@@ -227,16 +228,21 @@ export function FichaLeitura({
       <header className="flex items-start gap-4">
         {!vazio(dados.retrato) && (
           // A miniatura foca o ROSTO — é uma identificação, e num quadrado de
-          // 80px o corpo inteiro não diz quem é o personagem. Por isso ela
-          // recorta (ao contrário da carta, que contém) e usa `retratoPos`
-          // para saber onde o rosto está.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={dados.retrato}
-            alt={`Retrato de ${nome}`}
-            className="h-20 w-20 flex-none rounded-lg border border-border object-cover print:border-black/30"
-            style={{ objectPosition: `50% ${dados.retratoPos}%` }}
-          />
+          // 80px o corpo inteiro não diz quem é o personagem. Por isso ela tem
+          // recorte próprio, separado do da carta.
+          //
+          // O corte mora na moldura, e não no <img>: a ampliação do recorte é
+          // um `scale`, que faz a imagem crescer para fora do quadrado e passar
+          // por cima do nome ao lado.
+          <div className="h-20 w-20 flex-none overflow-hidden rounded-lg border border-border print:border-black/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={dados.retrato}
+              alt={`Retrato de ${nome}`}
+              className="h-full w-full object-cover"
+              style={estiloRecorte(dados.retratoMini)}
+            />
+          </div>
         )}
         <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight">{nome}</h1>

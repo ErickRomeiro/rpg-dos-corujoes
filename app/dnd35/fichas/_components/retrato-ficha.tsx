@@ -13,28 +13,26 @@
 
 import { useActionState, useRef, useState } from "react";
 import {
-  ajustarRetrato,
   enviarRetrato,
   removerRetrato,
   type EstadoFicha,
 } from "@/app/dnd35/fichas/actions";
+import { RecorteRetrato } from "@/app/dnd35/fichas/_components/recorte-retrato";
+import type { Enquadramento } from "@/lib/ficha";
 
 export function RetratoFicha({
   fichaId,
   retrato,
-  retratoPos,
+  retratoCarta,
+  retratoMini,
   nome,
 }: {
   fichaId: string;
   retrato: string;
-  retratoPos: number;
+  retratoCarta: Enquadramento;
+  retratoMini: Enquadramento;
   nome: string;
 }) {
-  // A posição vive em estado local para a prévia acompanhar o dedo. O
-  // salvamento só acontece ao SOLTAR o controle — salvar a cada pixel
-  // arrastado renderia dezenas de gravações para um ajuste só.
-  const [pos, setPos] = useState(retratoPos);
-  const formPos = useRef<HTMLFormElement>(null);
   const [estado, acao, pendente] = useActionState<EstadoFicha, FormData>(
     enviarRetrato,
     undefined,
@@ -43,57 +41,42 @@ export function RetratoFicha({
   const [form, setForm] = useState<HTMLFormElement | null>(null);
 
   return (
-    <div className="flex flex-wrap items-start gap-4">
-      {/* A prévia é QUADRADA porque o que este controle ajusta é a miniatura,
-          e ela é quadrada. Mostrar aqui a proporção da carta faria ajustar
-          contra um enquadramento que não é o afetado. */}
-      <div className="w-28 flex-none">
-        <div className="aspect-square overflow-hidden rounded-lg border border-border bg-background">
-          {retrato ? (
-            // <img> e não next/image, como já é feito com os avatares do
-            // Google: o arquivo vem de host externo e não precisa do otimizador.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={retrato}
-              alt={`Retrato de ${nome}`}
-              className="h-full w-full object-cover"
-              style={{ objectPosition: `50% ${pos}%` }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-center text-[11px] text-muted">
-              sem retrato
-            </div>
-          )}
+    <div className="flex flex-wrap items-start gap-6">
+      {/* Os dois quadros lado a lado, cada um na proporção do seu destino: são
+          recortes independentes da mesma imagem, e vê-los juntos é o que deixa
+          claro que ajustar um não mexe no outro. */}
+      {retrato && (
+        <div className="flex flex-wrap gap-4">
+          <RecorteRetrato
+            fichaId={fichaId}
+            alvo="carta"
+            src={retrato}
+            nome={nome}
+            inicial={retratoCarta}
+            proporcao="3 / 4"
+            titulo="Na carta"
+            descricao="Arraste para escolher o que aparece. É a imagem grande da ficha."
+          />
+          <RecorteRetrato
+            fichaId={fichaId}
+            alvo="mini"
+            src={retrato}
+            nome={nome}
+            inicial={retratoMini}
+            proporcao="1 / 1"
+            titulo="Na miniatura"
+            descricao="O quadradinho ao lado do nome. Costuma fechar no rosto."
+          />
         </div>
+      )}
 
-        {retrato && (
-          <form ref={formPos} action={ajustarRetrato} className="mt-2">
-            <input type="hidden" name="id" value={fichaId} />
-            <label className="block text-[10px] font-medium text-muted">
-              Rosto na miniatura
-            </label>
-            {/* O `name` vive no próprio controle, e não num campo escondido
-                espelhando o estado: espelhar criava uma corrida — o envio
-                dispara no soltar e lia o campo antes de o React ter gravado o
-                valor novo nele, mandando o anterior. Aqui o que se envia é
-                sempre o que está no controle. */}
-            <input
-              type="range"
-              name="posicao"
-              min={0}
-              max={100}
-              value={pos}
-              onChange={(e) => setPos(Number(e.target.value))}
-              // Grava só ao soltar: a cada pixel arrastado seriam dezenas de
-              // gravações para um ajuste só.
-              onPointerUp={() => formPos.current?.requestSubmit()}
-              onKeyUp={() => formPos.current?.requestSubmit()}
-              aria-label="Enquadramento vertical do retrato"
-              className="w-full accent-accent"
-            />
-          </form>
-        )}
-      </div>
+      {!retrato && (
+        <div className="w-28 flex-none">
+          <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-border bg-background text-center text-[11px] text-muted">
+            sem retrato
+          </div>
+        </div>
+      )}
 
       <div className="min-w-0 flex-1">
         <form ref={setForm} action={acao}>

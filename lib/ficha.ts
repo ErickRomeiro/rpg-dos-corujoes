@@ -15,6 +15,64 @@ import { bbaDaClasse, classePor, resistenciaBase } from "./dnd35/classes.ts";
 
 export type Override = number | null;
 
+/**
+ * Recorte de uma imagem dentro de um quadro, no mesmo espírito do recorte de
+ * foto do celular: a imagem sempre PREENCHE o quadro, e o que se ajusta é qual
+ * parte dela aparece.
+ *
+ * `x`/`y` são o ponto da imagem que fica no centro do quadro, em porcentagem —
+ * 0 é a borda esquerda/superior, 100 a direita/inferior, 50 o meio. É a mesma
+ * convenção do `object-position` do CSS, e por isso não precisa de conta para
+ * virar estilo.
+ *
+ * `zoom` é a ampliação sobre o tamanho que já cobre o quadro: 1 mostra o
+ * máximo possível da imagem, 2 aproxima o dobro. Nunca menor que 1, senão
+ * sobraria vazio — que é justamente o que este desenho existe para evitar.
+ */
+export type Enquadramento = {
+  x: number;
+  y: number;
+  zoom: number;
+};
+
+export const ENQUADRAMENTO_PADRAO: Enquadramento = { x: 50, y: 50, zoom: 1 };
+
+/**
+ * Traduz o enquadramento em estilo. `object-cover` (na classe do elemento)
+ * garante a cobertura, `objectPosition` escolhe a região e `scale` aproxima.
+ *
+ * Vive aqui, e não junto do controle de recorte, porque quem exibe o retrato
+ * são componentes de SERVIDOR — a carta e a leitura da ficha. Uma função
+ * exportada de um módulo "use client" não pode ser chamada do servidor.
+ */
+export function estiloRecorte(e: Enquadramento): {
+  objectPosition: string;
+  transform?: string;
+} {
+  return {
+    objectPosition: `${e.x}% ${e.y}%`,
+    transform: e.zoom === 1 ? undefined : `scale(${e.zoom})`,
+  };
+}
+
+/** Faixas de `Enquadramento`, impostas na leitura e em toda gravação. */
+export function lerEnquadramento(
+  v: unknown,
+  padrao: Enquadramento = ENQUADRAMENTO_PADRAO,
+): Enquadramento {
+  const o = (v ?? {}) as Record<string, unknown>;
+  const n = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : null);
+  const faixa = (x: number | null, min: number, max: number, se: number) =>
+    x == null ? se : Math.min(max, Math.max(min, x));
+  return {
+    x: faixa(n(o.x), 0, 100, padrao.x),
+    y: faixa(n(o.y), 0, 100, padrao.y),
+    // Teto de 4: além disso a imagem vira borrão, e o controle deixa de
+    // responder a ajustes finos porque cada pixel arrastado anda demais.
+    zoom: faixa(n(o.zoom), 1, 4, padrao.zoom),
+  };
+}
+
 export type ChaveAtributo =
   | "forca"
   | "destreza"
@@ -252,17 +310,24 @@ export type DadosFicha = {
    */
   retrato: string;
   /**
-   * Onde está o ROSTO na imagem, de 0 (topo) a 100 (base). 50 = centro.
+   * Recorte do retrato na carta, que é alta (3/4) e mostra o personagem.
    *
-   * Só a miniatura usa: ela é um quadrado pequeno, serve para identificar o
-   * personagem, e num quadrado desses o corpo inteiro não identifica ninguém —
-   * então ela recorta no rosto. A carta não usa, porque mostra a figura
-   * inteira sem recortar.
-   *
-   * É ajuste manual porque achar o rosto sozinho exigiria detecção de imagem,
-   * que não é confiável. O padrão é o centro, e quem edita corrige.
+   * A carta já mostrou a figura inteira, sem cortar, com o fundo preenchido por
+   * uma cópia borrada. O problema é que imagem nenhuma tem a proporção do
+   * quadro: sobrava faixa borrada em quase toda ficha, e o personagem ficava
+   * menor do que o espaço permitia. Agora a imagem preenche, e quem escolhe o
+   * que fica de fora é quem enviou.
    */
-  retratoPos: number;
+  retratoCarta: Enquadramento;
+  /**
+   * Recorte do retrato na miniatura, que é um quadrado pequeno ao lado do nome.
+   *
+   * Vive separado do da carta porque os dois querem coisas diferentes da mesma
+   * imagem: a miniatura identifica, então costuma fechar no rosto; a carta
+   * apresenta, e comporta o corpo. Um enquadramento só obrigaria a escolher
+   * qual dos dois sairia errado.
+   */
+  retratoMini: Enquadramento;
   xpAtual: number | null;
   xpProximo: number | null;
 
@@ -794,7 +859,8 @@ export function dadosVazios(): DadosFicha {
     cabelo: "",
     pele: "",
     retrato: "",
-    retratoPos: 50,
+    retratoCarta: { ...ENQUADRAMENTO_PADRAO },
+    retratoMini: { ...ENQUADRAMENTO_PADRAO },
     xpAtual: null,
     xpProximo: null,
     atributos: atributosVazios(),
@@ -958,8 +1024,16 @@ export function lerDados(json: unknown): DadosFicha {
     cabelo: str(j.cabelo),
     pele: str(j.pele),
     retrato: str(j.retrato),
-    // Fora da faixa ou ausente volta ao centro, que é o padrão seguro.
-    retratoPos: Math.min(100, Math.max(0, num(j.retratoPos) ?? 50)),
+    retratoCarta: lerEnquadramento(j.retratoCarta),
+    // Fichas anteriores guardavam só `retratoPos`: a altura do rosto, e apenas
+    // para a miniatura. Vira o `y` dela, preservando o enquadramento que a
+    // pessoa já tinha ajustado. A carta não herda nada porque naquele desenho
+    // ela não recortava — começa no centro, como uma ficha nova.
+    retratoMini: lerEnquadramento(j.retratoMini, {
+      x: 50,
+      y: Math.min(100, Math.max(0, num(j.retratoPos) ?? 50)),
+      zoom: 1,
+    }),
     // `xp` é o nome usado na versão anterior do projeto.
     xpAtual: num(j.xpAtual) ?? num(j.xp),
     xpProximo: num(j.xpProximo),

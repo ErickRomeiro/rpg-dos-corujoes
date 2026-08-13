@@ -31,6 +31,7 @@ import {
   ataqueCorpo,
   ataqueDistancia,
   ca,
+  estiloRecorte,
   formatarMod,
   fortitude,
   iniciativa,
@@ -210,42 +211,29 @@ export function CartaFicha({
           baixo dela — é o que dá à referência a cara de carta, em vez de
           "imagem seguida de dados". Por isso a proporção é generosa: precisa
           caber a figura e ainda sobrar área para o painel repousar. */}
-      <div className="relative aspect-[3/4] bg-surface-2">
+      {/* `overflow-hidden` aqui, e não só na carta inteira: a ampliação do
+          recorte é um `scale` no próprio <img>, que cresce PARA FORA da faixa.
+          Sem o corte neste nível, um retrato aproximado subia por cima do nome
+          e do nível no cabeçalho. */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-surface-2">
         {vazio(dados.retrato) ? (
           <div className="flex h-full w-full items-center justify-center px-6 text-center text-xs text-muted">
             Sem retrato. Envie um na edição da ficha.
           </div>
         ) : (
-          <>
-            {/* A carta mostra o personagem INTEIRO, então a arte é contida e
-                não recortada — recorte é o que corta pernas e cabeça. O preço
-                é sobrar moldura nas laterais, e quem preenche é a própria
-                imagem borrada por trás: fica um fundo que combina com a arte
-                em vez de uma barra vazia. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={dados.retrato}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl"
-            />
-            {/* A figura é contida no espaço ACIMA do painel, e não na moldura
-                inteira. Contida na moldura toda, ela ficava centralizada e o
-                terço de baixo — pernas e pés — sumia atrás do painel: a carta
-                dizia mostrar o personagem inteiro e escondia parte dele.
-
-                O fundo borrado continua ocupando a moldura toda, então a
-                sobreposição do painel segue parecendo intencional, como na
-                referência. */}
-            <div className="absolute inset-x-0 top-0 bottom-[32%]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={dados.retrato}
-                alt={`Retrato de ${nome}`}
-                className="h-full w-full object-contain"
-              />
-            </div>
-          </>
+          // A arte PREENCHE a moldura, e o recorte é o que a pessoa ajustou na
+          // edição. Antes ela era contida e o vazio das laterais era tapado por
+          // uma cópia borrada — o que funcionava, mas deixava o personagem
+          // menor do que o espaço permitia, e imagem nenhuma tem exatamente a
+          // proporção do quadro. Preenchendo, sobra a decisão de o que cortar,
+          // e essa decisão é de quem enviou a imagem.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={dados.retrato}
+            alt={`Retrato de ${nome}`}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={estiloRecorte(dados.retratoCarta)}
+          />
         )}
 
         {/* Chips de combate na lateral, como na referência */}
