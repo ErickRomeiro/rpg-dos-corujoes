@@ -46,16 +46,22 @@ export function RetratoFicha({
           recortes independentes da mesma imagem, e vê-los juntos é o que deixa
           claro que ajustar um não mexe no outro. */}
       {retrato && (
-        <div className="flex flex-wrap gap-4">
+        // A `key` no endereço da imagem remonta os dois editores quando se
+        // envia outra: eles medem a proporção da imagem uma vez, ao carregar, e
+        // sem a remontagem continuariam desenhando o quadro pela proporção da
+        // imagem antiga. O enquadramento guardado sobrevive à troca de propósito
+        // — ele é normalizado, não está em pixels, então uma imagem nova o
+        // reinterpreta em vez de perdê-lo.
+        <div key={retrato} className="flex flex-wrap gap-4">
           <RecorteRetrato
             fichaId={fichaId}
             alvo="carta"
             src={retrato}
             nome={nome}
             inicial={retratoCarta}
-            proporcao="3 / 4"
+            proporcao={3 / 4}
             titulo="Na carta"
-            descricao="Arraste para escolher o que aparece. É a imagem grande da ficha."
+            descricao="Arraste o quadro para escolher o que aparece; puxe um canto para aproximar. É a imagem grande da ficha."
           />
           <RecorteRetrato
             fichaId={fichaId}
@@ -63,7 +69,7 @@ export function RetratoFicha({
             src={retrato}
             nome={nome}
             inicial={retratoMini}
-            proporcao="1 / 1"
+            proporcao={1}
             titulo="Na miniatura"
             descricao="O quadradinho ao lado do nome. Costuma fechar no rosto."
           />
