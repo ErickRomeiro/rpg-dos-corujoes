@@ -27,6 +27,23 @@
   --muted: #9aa6b2;
   --accent: #a78bfa;
   --accent-strong: #8b5cf6;
+
+  /* --- Matéria do livro ---
+     Amostradas do Livro do Jogador 3.5 (capa e miolo): o couro bordô da
+     moldura, o latão das placas de capítulo, o rubi das gemas e o safira do
+     medalhão de número de página.
+
+     O ouro entra como ORNAMENTO — filete, cantoneira, regra sob título —, e
+     nunca como cor de estado. Âmbar preenchido continua significando aviso, e
+     foi justamente a confusão entre marca e aviso que tirou o âmbar da marca
+     (ver acima). Linha fina dourada e caixa âmbar não se confundem: uma
+     desenha a moldura, a outra é um bloco com texto dentro. */
+  --couro: #2e100c;
+  --couro-claro: #4a1a12;
+  --ouro: #c9a227;
+  --ouro-fosco: #8a6b1f;
+  --rubi: #8b1a1a;
+  --safira: #2c3268;
 }
 
 @theme inline {
@@ -38,12 +55,46 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-couro: var(--couro);
+  --color-couro-claro: var(--couro-claro);
+  --color-ouro: var(--ouro);
+  --color-ouro-fosco: var(--ouro-fosco);
+  --color-rubi: var(--rubi);
+  --color-safira: var(--safira);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 html {
   color-scheme: dark;
+}
+
+/* Canto chanfrado, como as placas de metal das fichas e dos livros: o corte é
+   em dois cantos OPOSTOS, e não nos quatro, que é o que dá a impressão de peça
+   aplicada em vez de caixa.
+
+   A borda é uma camada por baixo, e não `border`: `clip-path` recorta a borda
+   junto com o fundo, então uma borda comum sumiria justamente nos chanfros. A
+   camada de fora é dourada, a de dentro é recuada 1px — a diferença aparece
+   como filete que acompanha o corte. */
+.placa {
+  --chanfro: 0.75rem;
+  clip-path: polygon(
+    var(--chanfro) 0,
+    100% 0,
+    100% calc(100% - var(--chanfro)),
+    calc(100% - var(--chanfro)) 100%,
+    0 100%,
+    0 var(--chanfro)
+  );
+}
+
+@media print {
+  /* No papel o chanfro atrapalha: a impressora não pinta o fundo, então
+     sobraria um corte sem nada que o justifique. */
+  .placa {
+    clip-path: none;
+  }
 }
 
 body {

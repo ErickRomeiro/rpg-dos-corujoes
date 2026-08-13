@@ -110,7 +110,11 @@ export default async function FichaPage({
       </div>
 
       <div className="mt-8 print:mt-0">
-        <FichaLeitura nome={ficha.nome} dados={dados} />
+        <FichaLeitura
+          nome={ficha.nome}
+          dados={dados}
+          editarHref={`/dnd35/fichas/${ficha.id}/editar`}
+        />
       </div>
 
       <section className="mt-12 border-t border-border pt-6 print:hidden">
