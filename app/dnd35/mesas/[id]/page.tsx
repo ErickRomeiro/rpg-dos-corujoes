@@ -9,6 +9,7 @@ import {
   excluirMesa,
 } from "@/app/dnd35/mesas/actions";
 import { AdicionarMembroForm } from "@/app/dnd35/mesas/_components/adicionar-membro-form";
+import { Coruja } from "@/components/coruja";
 
 export const metadata: Metadata = { title: "Mesa · D&D 3.5" };
 
@@ -53,10 +54,30 @@ export default async function MesaDetalhePage({
         ← Voltar para as mesas
       </Link>
 
-      <header className="mt-6">
-        <h1 className="text-3xl font-bold tracking-tight">{mesa.nome}</h1>
-        {mesa.descricao && (
-          <p className="mt-2 whitespace-pre-line text-muted">{mesa.descricao}</p>
+      <header className="mt-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{mesa.nome}</h1>
+          {mesa.descricao && (
+            <p className="mt-2 whitespace-pre-line text-muted">
+              {mesa.descricao}
+            </p>
+          )}
+        </div>
+        {podeGerenciar && (
+          <div className="flex shrink-0 gap-2">
+            <Link
+              href={`/dnd35/mestre/${mesa.id}`}
+              className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted transition-colors hover:border-accent/50 hover:text-foreground"
+            >
+              Painel do mestre
+            </Link>
+            <Link
+              href={`/dnd35/mesas/${mesa.id}/catalogo`}
+              className="rounded-full border border-border px-4 py-2 text-sm font-medium text-muted transition-colors hover:border-accent/50 hover:text-foreground"
+            >
+              Conteúdo da mesa
+            </Link>
+          </div>
         )}
       </header>
 
@@ -92,8 +113,8 @@ export default async function MesaDetalhePage({
                       className="h-9 w-9 rounded-full border border-border"
                     />
                   ) : (
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2 text-sm">
-                      🦉
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-2">
+                      <Coruja className="h-5 w-5 text-muted" />
                     </span>
                   )}
 

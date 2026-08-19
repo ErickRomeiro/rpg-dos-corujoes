@@ -24,17 +24,19 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole  @default(USER)
-  accounts      Account[]
-  sessions      Session[]
-  mesasCriadas  Mesa[]       @relation("MesasCriadas")
-  membrosMesa   MembroMesa[]
-  fichas        Ficha[]
+  id             String           @id @default(cuid())
+  name           String?
+  email          String?          @unique
+  emailVerified  DateTime?
+  image          String?
+  role           UserRole         @default(USER)
+  accounts       Account[]
+  sessions       Session[]
+  mesasCriadas   Mesa[]           @relation("MesasCriadas")
+  membrosMesa    MembroMesa[]
+  fichas         Ficha[]
+  catalogoCriado ItemCatalogo[]   @relation("CatalogoCriado")
+  alteracoes     AlteracaoFicha[]
 }
 
 model Account {
@@ -79,16 +81,67 @@ enum PapelMesa {
 }
 
 model Mesa {
-  id          String       @id @default(cuid())
+  id          String         @id @default(cuid())
   nome        String
   sistema     String
   descricao   String?
   criadoPorId String
-  criadoPor   User         @relation("MesasCriadas", fields: [criadoPorId], references: [id])
+  criadoPor   User           @relation("MesasCriadas", fields: [criadoPorId], references: [id])
   membros     MembroMesa[]
-  createdAt   DateTime     @default(now())
+  catalogo    ItemCatalogo[]
+  combate     Combate?
+  createdAt   DateTime       @default(now())
 
   @@index([sistema])
+}
+
+// ----- Catálogo de dados de jogo -----
+// Uma tabela só, polimórfica, no mesmo padrão da Ficha: o que varia por tipo
+// vive em `dados` (JSON) e é normalizado na leitura. Assim, acrescentar
+// monstros ou itens mágicos depois não exige migração.
+//
+// O conteúdo do SRD entra por seed (`npm run db:seed`), a partir dos arquivos
+// em lib/dnd35/ — que continuam sendo a fonte versionada da verdade.
+
+enum TipoCatalogo {
+  RACA
+  CLASSE
+  ARMA
+  ARMADURA
+  TALENTO
+  MAGIA
+  ITEM
+  DIVINDADE
+  IDIOMA
+  DOMINIO
+}
+
+model ItemCatalogo {
+  id      String       @id @default(cuid())
+  sistema String
+  tipo    TipoCatalogo
+  nome    String
+  /// Campos próprios do tipo: ajustes de atributo, dano, CD, peso…
+  dados   Json
+  /// De onde veio: "SRD 3.5" para o oficial, "Homebrew" para o da mesa.
+  fonte   String       @default("SRD 3.5")
+
+  /// Null = conteúdo oficial, visível em todas as mesas.
+  /// Preenchido = homebrew, visível só naquela mesa.
+  mesaId String?
+  mesa   Mesa?   @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+
+  criadoPorId String?
+  criadoPor   User?   @relation("CatalogoCriado", fields: [criadoPorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Impede duplicar o mesmo nome no mesmo escopo (oficial ou de uma mesa).
+  @@unique([sistema, tipo, nome, mesaId])
+  // Busca por tipo dentro de um sistema é o acesso dominante.
+  @@index([sistema, tipo])
+  @@index([mesaId])
 }
 
 // Ficha de personagem — pertence ao jogador (independente de mesa).
@@ -104,8 +157,40 @@ model Ficha {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   membros   MembroMesa[]
 
+  /// Token do link público de leitura. Null = não compartilhada.
+  /// Trocar o valor invalida o link antigo; é assim que se revoga.
+  publicoToken String? @unique
+
+  alteracoes AlteracaoFicha[]
+  combates   ParticipanteCombate[]
+
   @@index([userId])
   @@index([sistema])
+}
+
+/// Uma edição da ficha: quem salvou, quando, e o que mudou.
+///
+/// Guarda a DIFERENÇA, não uma cópia da ficha — ver lib/ficha-historico.ts.
+/// Salvamento que não muda nada não gera linha aqui.
+model AlteracaoFicha {
+  id      String @id @default(cuid())
+  fichaId String
+  ficha   Ficha  @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  /// Quem salvou. Null quando a conta foi apagada — a alteração continua
+  /// existindo, porque apagar o autor não desfaz o que ele fez na ficha.
+  autorId   String?
+  autor     User?   @relation(fields: [autorId], references: [id], onDelete: SetNull)
+  /// Nome do autor no momento da edição, para o histórico continuar legível
+  /// mesmo depois que a conta some.
+  autorNome String
+
+  /// Lista de { campo, de, para }, já em português.
+  mudancas Json
+
+  createdAt DateTime @default(now())
+
+  @@index([fichaId, createdAt])
 }
 
 model MembroMesa {
@@ -121,4 +206,57 @@ model MembroMesa {
 
   @@unique([mesaId, userId])
   @@index([userId])
+}
+
+// ----- Rastreador de iniciativa -----
+// O combate vive no banco, não no navegador do mestre: uma luta atravessa a
+// sessão inteira, e recarregar a página não pode custar a ordem de turnos.
+
+/// Um combate em andamento. Uma mesa tem no máximo um de cada vez — encerrar
+/// apaga o registro, e é por isso que `mesaId` é único.
+model Combate {
+  id     String @id @default(cuid())
+  mesaId String @unique
+  mesa   Mesa   @relation(fields: [mesaId], references: [id], onDelete: Cascade)
+
+  rodada Int @default(1)
+  /// Posição na ordem de iniciativa, começando em zero. É índice, não id de
+  /// participante: quem entra ou sai no meio da luta desloca a fila, e o
+  /// índice é corrigido junto (ver lib/combate.ts).
+  turno  Int @default(0)
+
+  participantes ParticipanteCombate[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+}
+
+model ParticipanteCombate {
+  id        String  @id @default(cuid())
+  combateId String
+  combate   Combate @relation(fields: [combateId], references: [id], onDelete: Cascade)
+
+  /// Preenchido = personagem de jogador, e aí o PV mora na ficha.
+  /// Null = monstro ou NPC avulso, com PV próprio nas colunas abaixo.
+  fichaId String?
+  ficha   Ficha?  @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+
+  /// Nome exibido na ordem. Para avulso é o que o mestre digitou; para
+  /// personagem é cópia do nome da ficha, para a linha continuar legível sem
+  /// depender de carregar a ficha inteira.
+  nome String
+
+  iniciativa Int
+  /// Modificador de iniciativa. Guardado mesmo para personagem porque é o
+  /// desempate do 3.5: empate na iniciativa resolve pelo maior modificador.
+  modIniciativa Int @default(0)
+
+  /// PV do avulso. Fica null em participante de ficha, que usa o PV de lá.
+  pvAtual Int?
+  pvMax   Int?
+
+  /// Ordem de entrada no combate. Último desempate, para a fila não sacudir
+  /// entre um render e outro quando iniciativa e modificador empatam.
+  ordem Int
+
+  @@index([combateId])
 }

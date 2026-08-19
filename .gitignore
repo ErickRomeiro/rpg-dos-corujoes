@@ -43,3 +43,8 @@ next-env.d.ts
 .vercel
 
 /lib/generated/prisma
+
+# Referências de desenho: fichas oficiais digitalizadas e arte de personagem,
+# consultadas ao montar a ficha em tela. São material de consulta e não entram
+# no build — parte é de terceiros, e o repositório não é lugar de guardá-las.
+/Modelos Ficha (DnD)/

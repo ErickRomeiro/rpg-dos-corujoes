@@ -29,21 +29,31 @@ Fluxo real: login com Google → escolha do sistema de RPG → gestão das mesas
 - 🎲 **Sistema de mesas (campanhas)** — criar, listar, gerenciar membros
 - 👥 **Papéis por mesa** — mestre e jogador atribuídos independentemente do papel global no site
 - 🔎 **Adicionar membros via busca por nome** (autocomplete), não precisa saber o e-mail
-- 📋 **Biblioteca de fichas de personagem** (MVP) para D&D 3.5
+- 📋 **Ficha de personagem completa** de D&D 3.5 — atributos, combate, resistências, as 35 perícias do SRD com total calculado automaticamente, armas, talentos, equipamento, dinheiro e magias
+- 👁️ **Leitura e edição separadas** — abrir a ficha mostra a leitura, feita para conferir e imprimir; editar é um passo à parte, e cada salvamento grava só o que mudou, com histórico
+- 🌐 **Link público revogável** — `/f/[token]` abre a ficha para quem não tem conta, e o token pode ser derrubado a qualquer momento
+- 🖼️ **Retrato e carta de personagem** — envio de imagem com ajuste de enquadramento, e uma carta que abre a leitura da ficha ao lado das tabelas
+- 🐉 **Painel do mestre** — visão consolidada das fichas da mesa: PV, CA, iniciativa, resistências e os totais das perícias que o mestre rola em segredo, com dano e cura aplicados direto no painel
+- ⚔️ **Rastreador de iniciativa** — a fila do combate com os personagens da mesa e os monstros que o mestre acrescenta na hora; ordem pela regra do 3.5 (empate resolve pelo maior modificador), contador de rodada, e PV na própria linha
 - 🔗 **Vinculação ficha ↔ mesa** — cada jogador entra na mesa com sua ficha
-- 📚 **Compêndio integrado** — acesso direto aos livros oficiais do sistema
+- 🎯 **Rolador de dados** — expressões como `2d6+1d4+2`, detalhe de cada dado, destaque de 20/1 natural e histórico da sessão
+- 📚 **Compêndio integrado** — abre o catálogo de dados do sistema, além dos links para os livros oficiais
+- 📖 **Catálogo de dados de jogo** — magias, talentos, armas e armaduras, divindades, domínios, raças e classes transcritos do Livro do Jogador, do Livro Completo do Arcano e do Livro Completo do Guerreiro
+- 🏠 **Homebrew por mesa** — cada campanha acrescenta os próprios itens ao catálogo, sem tocar no material oficial
+- 🔍 **Busca tolerante** — acha pelo nome em inglês e ignora acento ("agua" encontra "Água")
 - 🛡️ **Papel global OWNER/USER** — dono do site promovido automaticamente por variável de ambiente
 
 ## 🚧 Em desenvolvimento
 
 Projeto em fase ativa — funcionalidades chegam conforme o grupo usa e pede.
 
+**Feito:**
+- [x] Dados estruturados de raças, classes e magias (não só links)
+- [x] Compartilhamento de ficha via link público
+- [x] Rastreador de iniciativa e combate no painel do mestre
+
 **Próximo:**
-- [ ] Deploy público em produção
-- [ ] Dados estruturados de raças, classes e magias (não só links)
-- [ ] Rolagem de dados integrada
-- [ ] Compartilhamento de ficha via link público
-- [ ] Modo mestre — visão consolidada das fichas da mesa
+- [ ] Condições de combate com duração em rodadas (enfeitiçado, atordoado, caído…)
 - [ ] Suporte a novos sistemas além de D&D 3.5
 
 ---
@@ -58,6 +68,7 @@ Projeto em fase ativa — funcionalidades chegam conforme o grupo usa e pede.
 **Backend & Dados**
 - [Prisma 7](https://www.prisma.io) + adapter PostgreSQL
 - [Neon](https://neon.tech) — PostgreSQL serverless
+- [Vercel Blob](https://vercel.com/docs/vercel-blob) — retratos das fichas
 - Server Actions do Next para mutations
 
 **Autenticação**
@@ -75,15 +86,20 @@ Projeto em fase ativa — funcionalidades chegam conforme o grupo usa e pede.
 ```
 app/
 ├── entrar/                      # Login
+├── f/[token]/                   # Ficha em link público, sem login
 ├── dnd35/                       # Namespace do sistema D&D 3.5
 │   ├── mesas/                   # Campanhas
 │   │   ├── nova/                # Criar mesa
 │   │   └── [id]/                # Detalhe da mesa
+│   │       └── catalogo/        # Homebrew da mesa
 │   ├── fichas/                  # Personagens
 │   │   ├── nova/                # Criar ficha
-│   │   └── [id]/                # Editar ficha
-│   ├── compendio/               # Biblioteca de livros
-│   ├── mestre/                  # Área do mestre
+│   │   └── [id]/                # Leitura da ficha
+│   │       ├── carta/           # Carta de personagem
+│   │       └── editar/          # Edição da ficha
+│   ├── catalogo/                # Dados de jogo do sistema
+│   ├── compendio/[tipo]/        # Catálogo por tipo + livros
+│   ├── mestre/[id]/             # Painel do mestre, por mesa
 │   └── utilitarios/             # Ferramentas de mesa
 └── api/
     ├── auth/[...nextauth]/      # Auth.js
@@ -119,8 +135,13 @@ cp .env.example .env.local
 #   AUTH_GOOGLE_ID       → Client ID do Google Cloud
 #   AUTH_GOOGLE_SECRET   → Client Secret do Google Cloud
 #   OWNER_EMAILS         → Seu e-mail (vira OWNER automaticamente)
+#   BLOB_*               → Opcional: store Public do Vercel Blob, para os
+#                          retratos das fichas (sem ele, só o envio de
+#                          retrato fica indisponível)
 
 # 3. Prepare o banco
+# (sincroniza o schema e cria a extensão unaccent, que a busca do catálogo usa
+#  para "agua" achar "Água")
 npm run db:push
 
 # 4. Rode em desenvolvimento
@@ -132,9 +153,14 @@ Abra [http://localhost:3000](http://localhost:3000).
 **Scripts úteis:**
 
 ```bash
-npm run db:generate    # Regenera Prisma Client
-npm run db:push        # Sincroniza schema com o banco
-npm run db:studio      # Abre Prisma Studio (GUI do banco)
+npm run db:generate       # Regenera Prisma Client
+npm run db:push           # Sincroniza schema com o banco (+ extensão da busca)
+npm run db:busca          # Só a extensão unaccent, se precisar rodar isolada
+npm run db:seed           # Popula o catálogo com o material dos livros
+npm run db:studio         # Abre Prisma Studio (GUI do banco)
+npm run catalogo:limpar   # Remove o que o seed deixa para trás
+npm run tabelas:conferir  # Confere as tabelas do catálogo
+npm run links:checar      # Verifica os links do Compêndio
 ```
 
 ---
